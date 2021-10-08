@@ -1,5 +1,8 @@
 package com.wiqer.redis.resp;
 
+/**
+ * @author lilan
+ */
 public class SimpleString implements Resp
 {
     public static final SimpleString OK = new SimpleString("OK");

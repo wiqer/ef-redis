@@ -1,8 +1,7 @@
 package com.wiqer.redis.util;
 
 import java.lang.management.ManagementFactory;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+
 import java.util.Calendar;
 
 public class WinterId implements Uid
@@ -40,19 +39,6 @@ public class WinterId implements Uid
         }
     }
 
-    public static void main(String[] args) throws SocketException, UnknownHostException
-    {
-        WinterId id    = WinterId.instance();
-        String[] array = new String[1000];
-        for (int i = 0; i < 1000; i++)
-        {
-            array[i] = id.generate();
-        }
-        for (String each : array)
-        {
-            System.out.println(each);
-        }
-    }
 
     @Override
     public byte[] generateBytes()
