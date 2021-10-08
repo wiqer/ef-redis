@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/**
+ * @author lilan
+ */
 public class RedisZset implements RedisData
 {
     private long                   timeout = -1;

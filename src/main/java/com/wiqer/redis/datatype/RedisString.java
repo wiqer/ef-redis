@@ -1,5 +1,8 @@
 package com.wiqer.redis.datatype;
 
+/**
+ * @author lilan
+ */
 public class RedisString implements RedisData
 {
     private volatile long timeout;

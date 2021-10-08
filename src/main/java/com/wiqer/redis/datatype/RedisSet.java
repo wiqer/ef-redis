@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author lilan
+ */
 public class RedisSet implements RedisData
 {
     private long timeout = -1;

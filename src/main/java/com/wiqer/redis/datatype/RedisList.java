@@ -5,6 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author lilan
+ */
 public class RedisList implements RedisData
 {
     private       long                timeout = -1;
@@ -53,8 +56,7 @@ public class RedisList implements RedisData
 
     public List<BytesWrapper> lrang(int start, int end)
     {
-        List<BytesWrapper> collect = deque.stream().skip(start).limit(end - start >= 0 ? end - start + 1 : 0).collect(Collectors.toList());
-        return collect;
+        return deque.stream().skip(start).limit(end - start >= 0 ? end - start + 1 : 0).collect(Collectors.toList());
     }
 
     public int remove(BytesWrapper value)

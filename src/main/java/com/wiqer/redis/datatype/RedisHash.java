@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author lilan
+ */
 public class RedisHash implements RedisData
 {
     private       long                            timeout = -1;

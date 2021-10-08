@@ -1,6 +1,12 @@
 package com.wiqer.redis;
 
+import com.wiqer.redis.command.Command;
+import com.wiqer.redis.command.CommandFactory;
+import com.wiqer.redis.resp.BulkString;
+import com.wiqer.redis.resp.Errors;
 import com.wiqer.redis.resp.Resp;
+import com.wiqer.redis.resp.RespArray;
+import com.wiqer.redis.util.TRACEID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -18,20 +24,32 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
     }
     @Override
     public Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-        ByteBuf frame = null;
-        try {
-            frame = (ByteBuf) super.decode(ctx, in);
-            if (frame == null) {
-                return null;
+
+        TRACEID.newTraceId();
+        while (in.readableBytes() != 0)
+        {
+            int mark = in.readerIndex();
+            try
+            {
+                Resp resp = Resp.decode(in);
+                if (!(resp instanceof RespArray))
+                {
+                    throw new IllegalStateException("客户端发送的命令应该只能是Resp Array 类型");
+                }
+                Command command = CommandFactory.from((RespArray) resp);
+                if (command == null)
+                {
+                    ctx.writeAndFlush(new Errors("unsupport command:" + ((BulkString) ((RespArray) resp).getArray()[0]).getContent().toUtf8String()));
+                }
+                else
+                {
+                    return command;
+                }
             }
-            //ByteBuffer byteBuffer = frame.nioBuffer();
-            //logger.info(byteBuffer.toString());
-            return Resp.decode(frame);
-        }catch (Exception e) {
-            ctx.channel().close();
-        }finally {
-            if (frame != null) {
-                frame.release();
+            catch (Exception e)
+            {
+                in.readerIndex(mark);
+                break;
             }
         }
         return null;
