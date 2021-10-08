@@ -12,10 +12,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.apache.logging.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +26,6 @@ public class MyRedisServer implements RedisServer
     private static final Logger LOGGER = LoggerFactory.getLogger(MyRedisServer.class);
     private final ServerBootstrap serverBootstrap=new ServerBootstrap();
     private final RedisCore redisCore =  new RedisCoreImpl();
-    private       DefaultEventExecutorGroup workerGroup;
     private final NioEventLoopGroup boss;
     private final NioEventLoopGroup selectors;
     private final  EventExecutorGroup redisSingleEventExecutor;
@@ -53,9 +50,6 @@ public class MyRedisServer implements RedisServer
             }
         });
         this.redisSingleEventExecutor=new NioEventLoopGroup(1);
-//        JnetWorkerImpl jnetWorker = new JnetWorkerImpl("redis-singleThread");
-//        jnetWorker.start();
-//        workerGroup = () -> jnetWorker;
     }
 
     public static void main(String[] args)
@@ -75,10 +69,10 @@ public class MyRedisServer implements RedisServer
         try {
             boss.shutdownGracefully();
             selectors.shutdownGracefully();
-
-
-        }catch (Exception e) {
-
+            defaultEventExecutorGroup.shutdownGracefully();
+            redisSingleEventExecutor.shutdownGracefully();
+        }catch (Exception ignored) {
+            LOGGER.warn( "Exception!", ignored);
         }
     }
     public void start0() {
@@ -118,8 +112,7 @@ public class MyRedisServer implements RedisServer
 
         try {
             ChannelFuture sync = serverBootstrap.bind().sync();
-            InetSocketAddress addr = (InetSocketAddress) sync.channel().localAddress();
-
+            LOGGER.info(sync.channel().localAddress().toString());
         } catch (InterruptedException e) {
 //
             LOGGER.warn( "Interrupted!", e);
