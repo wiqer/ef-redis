@@ -5,6 +5,7 @@ import com.wiqer.redis.MyRedisServer;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
+import com.wiqer.redis.resp.SimpleString;
 import com.wiqer.redis.util.TRACEID;
 import org.apache.log4j.Logger;
 
@@ -53,5 +54,28 @@ public class CommandFactory
             }
         }
     }
-
+    public static Command from(SimpleString string)
+    {
+        String            commandName = string.getContent().toLowerCase();
+        Supplier<Command> supplier    = map.get(commandName);
+        if (supplier == null)
+        {
+            LOGGER.debug("traceId:"+TRACEID.currentTraceId()+" 不支持的命令："+ commandName);
+            System.out.println("不支持的命令：" + commandName);
+            return null;
+        }
+        else
+        {
+            try
+            {
+                return supplier.get();
+            }
+            catch (Throwable e)
+            {
+                LOGGER.debug("traceId:"+TRACEID.currentTraceId()+" 不支持的命令：{},数据读取异常"+commandName);
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
 }

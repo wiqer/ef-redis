@@ -46,6 +46,13 @@ public class PropertiesUtil {
         }
         return  false;
     }
+    public static boolean getTcpKeepAlive() {
+        String appendOnly =getProParams().getProperty("tcp_keepalive");
+        if(!StringUtil.isNullOrEmpty(appendOnly)){
+            return appendOnly.trim().equals("yes");
+        }
+        return  false;
+    }
     public static Integer getNodePort() {
         Integer port=6379;
         try{

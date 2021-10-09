@@ -67,5 +67,26 @@ jar运行方式 ，参见ef-zab
 
 redis-client 或者 redis-desktop-manager 都可以
 
+###  EF-Redis 压测结果
+
+####  秒吞吐量
+
+同样资源下 EF-Redis秒吞吐量是Redis的80%-95%
+
+####  延迟
+
+EF-Redis，与Redis相当
+
+EF-Redis 0.5%的可能延迟超过100ms小于1s
+
+Redis 基本稳定，100%小于12ms，0.5%的可能延迟超过2ms
+
+![redis屏幕截图](cpp-redis.png "redis屏幕截图.png")
+
+![ef-redis屏幕截图](cpp-redis.png "ef-redis屏幕截图.png")
+
+
+
+
 
 

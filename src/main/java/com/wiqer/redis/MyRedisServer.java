@@ -14,7 +14,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.log4j.Logger;
 
@@ -31,11 +30,10 @@ public class MyRedisServer implements RedisServer
     private final NioEventLoopGroup boss;
     private final NioEventLoopGroup selectors;
     private final  EventExecutorGroup redisSingleEventExecutor;
-    private  DefaultEventExecutorGroup defaultEventExecutorGroup;
     private Aof aof;
     public MyRedisServer()
     {
-        this.boss = new NioEventLoopGroup(1, new ThreadFactory() {
+        this.boss = new NioEventLoopGroup(4, new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
             @Override
@@ -44,7 +42,7 @@ public class MyRedisServer implements RedisServer
             }
         });
 
-        this.selectors = new NioEventLoopGroup(16, new ThreadFactory() {
+        this.selectors = new NioEventLoopGroup(8, new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
             @Override
@@ -75,21 +73,13 @@ public class MyRedisServer implements RedisServer
         try {
             boss.shutdownGracefully();
             selectors.shutdownGracefully();
-            defaultEventExecutorGroup.shutdownGracefully();
             redisSingleEventExecutor.shutdownGracefully();
         }catch (Exception ignored) {
             LOGGER.warn( "Exception!", ignored);
         }
     }
     public void start0() {
-        this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(16, new ThreadFactory() {
-            private AtomicInteger index = new AtomicInteger(0);
 
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, "Server_worker_" + index.getAndIncrement());
-            }
-        });
 
         serverBootstrap.group(boss, selectors)
                 .channel(NioServerSocketChannel.class)
@@ -97,16 +87,16 @@ public class MyRedisServer implements RedisServer
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .option(ChannelOption.SO_REUSEADDR, true)
                 //false
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.SO_SNDBUF, 65535)
-                .childOption(ChannelOption.SO_RCVBUF, 65535)
+                .option(ChannelOption.SO_KEEPALIVE, PropertiesUtil.getTcpKeepAlive())
+//                .childOption(ChannelOption.TCP_NODELAY, true)
+//                .childOption(ChannelOption.SO_SNDBUF, 65535)
+//                .childOption(ChannelOption.SO_RCVBUF, 65535)
                 .localAddress(new InetSocketAddress(PropertiesUtil.getNodeAddress(), PropertiesUtil.getNodePort()))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline channelPipeline = socketChannel.pipeline();
-                        channelPipeline.addLast(defaultEventExecutorGroup,
+                        channelPipeline.addLast(
                                 new ResponseEncoder(),
                                 new CommandDecoder(aof)//,
 //                                /*心跳,管理长连接*/

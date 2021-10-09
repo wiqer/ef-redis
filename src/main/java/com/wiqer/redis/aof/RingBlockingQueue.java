@@ -247,7 +247,20 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
 
     @Override
     public E peek() {
-        return null;
+        int localReadIndex=0;
+        synchronized (this){
+            if(writeIndex>readIndex){
+                localReadIndex=readIndex;
+            }else{
+                return null;
+            }
+        }
+        int row=(localReadIndex>>bitHigh)&(rowOffice);
+        int column =localReadIndex&(colOffice);
+        if(column==0&&row==0){
+            refreshIndex();
+        }
+        return (E)data[row][column];
     }
 
     @Override

@@ -4,10 +4,7 @@ import com.wiqer.redis.aof.Aof;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandFactory;
 import com.wiqer.redis.command.WriteCommand;
-import com.wiqer.redis.resp.BulkString;
-import com.wiqer.redis.resp.Errors;
-import com.wiqer.redis.resp.Resp;
-import com.wiqer.redis.resp.RespArray;
+import com.wiqer.redis.resp.*;
 import com.wiqer.redis.util.PropertiesUtil;
 import com.wiqer.redis.util.TRACEID;
 import io.netty.buffer.ByteBuf;
@@ -46,11 +43,17 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
             try
             {
                 Resp resp = Resp.decode(in);
-                if (!(resp instanceof RespArray))
+                if (!(resp instanceof RespArray||resp instanceof SimpleString))
                 {
-                    throw new IllegalStateException("客户端发送的命令应该只能是Resp Array 类型");
+                    throw new IllegalStateException("客户端发送的命令应该只能是Resp Array 和 单行命令 类型");
                 }
-                Command command = CommandFactory.from((RespArray) resp);
+                Command command=null;
+                if(resp instanceof RespArray) {
+                    command = CommandFactory.from((RespArray) resp);
+                }else if(resp instanceof SimpleString){
+                    command  = CommandFactory.from((SimpleString) resp);
+
+                }
                 if (command == null)
                 {
                     //取出命令
@@ -67,6 +70,7 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
             catch (Exception e)
             {
                 in.readerIndex(mark);
+                LOGGER.error("解码命令", e);
                 break;
             }
         }

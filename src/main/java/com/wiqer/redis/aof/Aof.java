@@ -18,8 +18,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +47,7 @@ public class Aof {
     private  String fileName= PropertiesUtil.getAofPath();
 
     private RingBlockingQueue<Resp> runtimeRespQueue=new RingBlockingQueue<Resp>(8888,888888);
+    ByteBuf bufferPolled= new PooledByteBufAllocator().buffer(8888);
 //    private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
     private ScheduledThreadPoolExecutor persistenceExecutor=new ScheduledThreadPoolExecutor(2,new ThreadFactory() {
         @Override
@@ -105,7 +109,7 @@ public class Aof {
                 /**
                  * 池化内存
                  */
-                ByteBuf bufferPolled= new PooledByteBufAllocator().buffer(8888);
+
                Segment:
                 while (segmentId!=(aofPutIndex>>shiftBit)) {
                     //要后28位
@@ -123,34 +127,51 @@ public class Aof {
 
                     do{
                         //todo 序列化存储
-                        Resp resp= runtimeRespQueue.poll();
+                        Resp resp= runtimeRespQueue.peek();
                         if(resp==null){
-                            bufferPolled.release();
+                            //bufferPolled.release();
+                            clean(mappedByteBuffer);
+                            randomAccessFile.close();
                             break  Segment;
                         }
                         Resp.write(resp,bufferPolled);
                         //ByteBuffer buffer=bufferPolled.nioBuffer();
                         //putIndex+=bufferPolled.readableBytes();
                         int respLen=bufferPolled.readableBytes();
+                        if((mappedByteBuffer.capacity()<=respLen+putIndex)){
+                            len+= 1L <<(shiftBit-3);
+                            mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0,len);
+                            if(len>(1<<shiftBit)){
+                                bufferPolled.release();
+                                aofPutIndex=baseOffset+1<<shiftBit;
+                                break ;
+                            }
+                        }
                         while(respLen>0){
                             respLen--;
                             mappedByteBuffer.put(putIndex++,bufferPolled.readByte());
                         }
+                        /**
+                         * 完成消费
+                         */
                         aofPutIndex= baseOffset+putIndex;
-
+                        runtimeRespQueue.poll();
 //                        mappedByteBuffer.put(bufferPolled.array(),0,bufferPolled.readableBytes());
 //                        bufferPolled.readByte();
 //                        putIndex+=bufferPolled.readableBytes();
                         bufferPolled.clear();
-                        if(putIndex>(1<<shiftBit)){
-                            bufferPolled.release();
-                            break ;
-
-                        }
-                        if(len-putIndex < 1L <<(shiftBit-3)){
+                        if(len-putIndex < (1L <<(shiftBit-3))){
                             len+= 1L <<(shiftBit-3);
+                            if(len>(1<<shiftBit)){
+                                bufferPolled.release();
+                                clean(mappedByteBuffer);
+                                aofPutIndex=baseOffset+1<<shiftBit;
+                                break ;
+                            }
                             mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0,len);
                         }
+
+
 
                     }while (true);
 
@@ -198,6 +219,9 @@ public class Aof {
                         try {
                             resp=Resp.decode(bufferPolled);
                         }catch (Exception e) {
+
+                            clean(mappedByteBuffer);
+                            randomAccessFile.close();
                             bufferPolled.release();
                             break Segment;
                         }
@@ -208,6 +232,8 @@ public class Aof {
                         aofPutIndex=putIndex+ baseOffset;
                         if(putIndex>(1<<shiftBit)){
                             bufferPolled.release();
+                            clean(mappedByteBuffer);
+                            aofPutIndex=baseOffset+1<<shiftBit;
                             break ;
                         }
 
@@ -217,9 +243,45 @@ public class Aof {
 
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 reentrantLock.writeLock().unlock();
             }
         }
+    }
+
+
+    /*
+     * 其实讲到这里该问题的解决办法已然清晰明了了——就是在删除索引文件的同时还取消对应的内存映射，删除mapped对象。
+     * 不过令人遗憾的是，Java并没有特别好的解决方案——令人有些惊讶的是，Java没有为MappedByteBuffer提供unmap的方法，
+     * 该方法甚至要等到Java 10才会被引入 ,DirectByteBufferR类是不是一个公有类
+     * class DirectByteBufferR extends DirectByteBuffer implements DirectBuffer 使用默认访问修饰符
+     * 不过Java倒是提供了内部的“临时”解决方案——DirectByteBufferR.cleaner().clean() 切记这只是临时方法，
+     * 毕竟该类在Java9中就正式被隐藏了，而且也不是所有JVM厂商都有这个类。
+     * 还有一个解决办法就是显式调用System.gc()，让gc赶在cache失效前就进行回收。
+     * 不过坦率地说，这个方法弊端更多：首先显式调用GC是强烈不被推荐使用的，
+     * 其次很多生产环境甚至禁用了显式GC调用，所以这个办法最终没有被当做这个bug的解决方案。
+     */
+    public static void clean(final MappedByteBuffer buffer) throws Exception {
+        if (buffer == null) {
+            return;
+        }
+        buffer.force();
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {//Privileged特权
+            @Override
+            public Object run() {
+                try {
+                    // System.out.println(buffer.getClass().getName());
+                    Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+                    getCleanerMethod.setAccessible(true);
+                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
+                    cleaner.clean();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
     }
 }
