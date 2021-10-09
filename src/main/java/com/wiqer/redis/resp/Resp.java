@@ -163,6 +163,7 @@ public interface Resp
         t = (char) buffer.readByte();
         boolean positive = true;
         int     value    = 0;
+        // 错误（Errors）： 响应的首字节是 "-"
         if (t == '-')
         {
             positive = false;

@@ -1,6 +1,7 @@
 package com.wiqer.redis;
 
 
+
 import com.wiqer.redis.util.PropertiesUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -14,8 +15,8 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MyRedisServer implements RedisServer
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MyRedisServer.class);
+    private static final Logger LOGGER = Logger.getLogger(MyRedisServer.class);
     private final ServerBootstrap serverBootstrap=new ServerBootstrap();
     private final RedisCore redisCore =  new RedisCoreImpl();
     private final NioEventLoopGroup boss;

@@ -63,7 +63,7 @@ public class Set implements Command
         {
             ctx.writeAndFlush(BulkString.NullBulkString);
         }
-        else if (existSet && redisCore.exist(key) == false)
+        else if (existSet && !redisCore.exist(key))
         {
             ctx.writeAndFlush(BulkString.NullBulkString);
         }

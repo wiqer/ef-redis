@@ -33,7 +33,7 @@ public class Client implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         String traceId = TRACEID.currentTraceId();
-        LOGGER.debug("traceId:{} 当前的子命令是：{}", traceId, subCommand);
+        LOGGER.debug("traceId:{} 当前的子命令是：{}"+traceId+subCommand);
         switch (subCommand)
         {
             case "setname":

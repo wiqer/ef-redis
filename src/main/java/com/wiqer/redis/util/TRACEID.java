@@ -2,6 +2,9 @@ package com.wiqer.redis.util;
 
 
 
+/**
+ * @author lilan
+ */
 public class TRACEID
 {
     private static final ThreadLocal<String> TRACEID = new ThreadLocal<String>();

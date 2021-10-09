@@ -7,7 +7,7 @@ import java.util.Arrays;
 /**
  * @author lilan
  */
-public class BytesWrapper
+public class BytesWrapper implements Comparable<BytesWrapper>
 {
     static final Charset CHARSET = StandardCharsets.UTF_8;
     private final byte[] content;
@@ -43,5 +43,26 @@ public class BytesWrapper
     public int hashCode()
     {
         return Arrays.hashCode(content);
+    }
+
+
+    @Override
+    public int compareTo(BytesWrapper o) {
+        int len1 = content.length;
+        int len2 = o.getByteArray().length;
+        int lim = Math.min(len1, len2);
+        byte v1[] = content;
+        byte v2[] = o.getByteArray();
+
+        int k = 0;
+        while (k < lim) {
+            byte c1 = v1[k];
+            byte c2 = v2[k];
+            if (c1 != c2) {
+                return c1 - c2;
+            }
+            k++;
+        }
+        return len1 - len2;
     }
 }

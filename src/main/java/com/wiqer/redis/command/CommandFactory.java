@@ -1,12 +1,13 @@
 package com.wiqer.redis.command;
 
 
+import com.wiqer.redis.MyRedisServer;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
 import com.wiqer.redis.util.TRACEID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.function.Supplier;
 
 public class CommandFactory
 {
-    private static final Logger                         LOGGER = LoggerFactory.getLogger(CommandFactory.class);
+    private static final Logger LOGGER = Logger.getLogger(CommandFactory.class);
     static               Map<String, Supplier<Command>> map    = new HashMap<>();
 
     static
@@ -32,7 +33,7 @@ public class CommandFactory
         Supplier<Command> supplier    = map.get(commandName);
         if (supplier == null)
         {
-            LOGGER.debug("traceId:{} 不支持的命令：{}", TRACEID.currentTraceId(), commandName);
+            LOGGER.debug("traceId:"+TRACEID.currentTraceId()+" 不支持的命令："+ commandName);
             System.out.println("不支持的命令：" + commandName);
             return null;
         }
@@ -46,7 +47,7 @@ public class CommandFactory
             }
             catch (Throwable e)
             {
-                LOGGER.debug("traceId:{} 不支持的命令：{},数据读取异常", TRACEID.currentTraceId(), commandName);
+                LOGGER.debug("traceId:"+TRACEID.currentTraceId()+" 不支持的命令：{},数据读取异常"+commandName);
                 e.printStackTrace();
                 return null;
             }

@@ -53,7 +53,7 @@ public class Config implements Command
         else
         {
             String traceId = TRACEID.currentTraceId();
-            LOGGER.debug("traceId:{} 不识别的Config命令模式:{}", traceId, param);
+            LOGGER.debug("traceId:"+traceId+" 不识别的Config命令模式:"+param );
             ctx.channel().close();
         }
     }

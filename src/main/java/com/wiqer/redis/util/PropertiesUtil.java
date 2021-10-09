@@ -27,6 +27,13 @@ public class PropertiesUtil {
         }
         return  address;
     }
+    public static String getAofPath() {
+        String aofDataDir =getProParams().getProperty("aof_data_dir");
+        if(StringUtil.isNullOrEmpty(aofDataDir)){
+            return "./aof_data_dir/";
+        }
+        return  aofDataDir;
+    }
     public static Integer getNodePort() {
         Integer port=6379;
         try{

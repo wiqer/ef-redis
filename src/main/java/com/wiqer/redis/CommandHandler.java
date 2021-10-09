@@ -6,12 +6,12 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.util.TRACEID;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 public class CommandHandler extends SimpleChannelInboundHandler<Command> // ReadProcessor<Command>
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommandHandler.class);
+    private static final Logger LOGGER = Logger.getLogger(CommandHandler.class);
 
     private final RedisCore redisCore;
 
@@ -25,8 +25,12 @@ public class CommandHandler extends SimpleChannelInboundHandler<Command> // Read
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Command command) throws Exception {
         String traceId = TRACEID.currentTraceId();
-        LOGGER.debug("traceId:{} 本次处理的命令：{}", traceId, command.type().name());
+        LOGGER.debug("traceId:"+ traceId+" 本次处理的命令："+command.type().name());
         command.handle(channelHandlerContext, redisCore);
-        LOGGER.debug("traceId:{} 命令处理完毕", traceId);
+        LOGGER.debug("traceId:"+traceId+" 命令处理完毕");
+    }
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        LOGGER.error(" ExceptionCaught：",cause);
     }
 }

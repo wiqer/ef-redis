@@ -4,10 +4,13 @@
 
 ef-Redis是java 版本的redis server
 
-仅支持连接相关与五大基本类型的命令
+命令：仅支持服务连接与五大基本类型相关的命令
+
+存储：仅支持AOF日志
+
 #### 解决问题
 
-1,作者找不到好工作
+1,解除喜欢刨根问底的开发者，对大厂面试官面试redis相关问题的迷惑侧重点的迷惑
 
 #### EF-Redis功能介绍
 
@@ -15,9 +18,9 @@ ef-Redis是java 版本的redis server
 
 #### EF-Redis架构简介
 
-客户端路由
+集群架构方式：客户端路由
 
-见文档
+见作者知乎文档
 https://zhuanlan.zhihu.com/p/368407754
 
 ####  EF-Redis涉及技术
@@ -41,6 +44,21 @@ b站搜索 “韩顺平netty”
 
 https://www.redis.com.cn/topics/protocol.html
 
-## 软件架构
+####  EF-Redis启动步骤
+
+idea内部直接启动MyRedisServer
+
+jar运行方式 ，参见ef-zab
+
+####  EF-Redis AOf持久化演示
+
+![AOf持久化演示](aof_img.png "屏幕截图.png")
+
+暂时仅支持AOF的所有命令持久化，不支持启动时反序列化后载入redis，需要大改执行命令相关代码，期待下一版本
+
+####  EF-Redis 如何连接？
+
+redis-client 或者 redis-desktop-manager 都可以
+
 
 

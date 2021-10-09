@@ -11,9 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+/**
+ * @author lilan
+ */
 public class RedisCoreImpl implements RedisCore
 {
-    //客户端可能使用hash路由，更换为跳表更好的避免hash冲突
+    /**
+     *    客户端可能使用hash路由，更换为跳表更好的避免hash冲突
+     */
     private final ConcurrentNavigableMap<BytesWrapper, RedisData> map         = new ConcurrentSkipListMap<BytesWrapper, RedisData>();
     private final ConcurrentHashMap<BytesWrapper, Channel> clients     = new ConcurrentHashMap<>();
     private final Map<Channel, BytesWrapper>               clientNames = new ConcurrentHashMap<>();
