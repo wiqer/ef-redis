@@ -10,10 +10,15 @@ public class Format {
        // if(z<0) z=-z;
         return (int)(z&0x7fffffff);
     }
-    //保留n位
+    /**
+     *  保留后n位
+     */
     public static int uintNBit(long z,int n) {
-        // if(z<0) z=-z;
-        return (int)(z&(1<<n-1));
+        return (int)(z&((1<<n)-1));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(uintNBit(26L,26));
     }
     public static String digits(int val, int digits) {
         char[] buf = new char[digits];

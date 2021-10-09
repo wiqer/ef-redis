@@ -4,6 +4,7 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisZset;
@@ -15,7 +16,7 @@ import io.netty.channel.ChannelHandlerContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Zadd implements Command
+public class Zadd implements WriteCommand
 {
     private BytesWrapper            key;
     private List<RedisZset.ZsetKey> keys;
@@ -55,6 +56,26 @@ public class Zadd implements Command
             RedisZset redisZset = (RedisZset) redisData;
             int       add       = redisZset.add(keys);
             ctx.writeAndFlush(new RespInt(add));
+        }
+        else
+        {
+            throw new UnsupportedOperationException("类型不匹配");
+        }
+    }
+
+    @Override
+    public void handle(RedisCore redisCore) {
+        RedisData redisData = redisCore.get(key);
+        if (redisData == null)
+        {
+            RedisZset redisZset = new RedisZset();
+            int       add       = redisZset.add(keys);
+            redisCore.put(key, redisZset);
+        }
+        else if (redisData instanceof RedisZset)
+        {
+            RedisZset redisZset = (RedisZset) redisData;
+            int       add       = redisZset.add(keys);
         }
         else
         {

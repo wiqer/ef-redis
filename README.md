@@ -20,8 +20,10 @@ ef-Redis是java 版本的redis server
 
 集群架构方式：客户端路由
 
-见作者知乎文档
-https://zhuanlan.zhihu.com/p/368407754
+见作者知乎文档：
+[微服务集群架构实现一览](https://zhuanlan.zhihu.com/p/368407754)
+
+
 
 ####  EF-Redis涉及技术
 
@@ -42,7 +44,12 @@ b站搜索 “韩顺平netty”
 
 3，redis tcp 协议
 
-https://www.redis.com.cn/topics/protocol.html
+
+[RESP协议中文文档](https://www.redis.com.cn/topics/protocol.html)
+
+[REDIS命令大全](https://www.redis.com.cn/commands.html)
+
+
 
 ####  EF-Redis启动步骤
 
@@ -53,8 +60,6 @@ jar运行方式 ，参见ef-zab
 ####  EF-Redis AOf持久化演示
 
 ![AOf持久化演示](aof_img.png "屏幕截图.png")
-
-暂时仅支持AOF的所有命令持久化，不支持启动时反序列化后载入redis，需要大改执行命令相关代码，期待下一版本
 
 ####  EF-Redis 如何连接？
 

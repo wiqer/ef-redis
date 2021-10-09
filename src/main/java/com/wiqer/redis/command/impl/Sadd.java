@@ -4,6 +4,7 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisSet;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Sadd implements Command
+public class Sadd implements WriteCommand
 {
     List<BytesWrapper> member;
     private BytesWrapper key;
@@ -50,6 +51,26 @@ public class Sadd implements Command
             RedisSet redisSet = (RedisSet) redisData;
             int      sadd     = redisSet.sadd(member);
             ctx.writeAndFlush(new RespInt(sadd));
+        }
+        else
+        {
+            throw new IllegalArgumentException("类型不匹配");
+        }
+    }
+
+    @Override
+    public void handle(RedisCore redisCore) {
+        RedisData redisData = redisCore.get(key);
+        if (redisData == null)
+        {
+            RedisSet redisSet = new RedisSet();
+            redisSet.sadd(member);
+            redisCore.put(key, redisSet);
+        }
+        else if (redisData instanceof RedisSet)
+        {
+            RedisSet redisSet = (RedisSet) redisData;
+            int      sadd     = redisSet.sadd(member);
         }
         else
         {

@@ -3,6 +3,7 @@ package com.wiqer.redis.command.impl;
 
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisList;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public abstract class Push implements Command
+public abstract class Push implements WriteCommand
 {
     BiConsumer<RedisList, List<BytesWrapper>> biConsumer;
     private BytesWrapper       key;
@@ -58,6 +59,26 @@ public abstract class Push implements Command
             biConsumer.accept((RedisList) redisData, value);
             redisCore.put(key, redisData);
             ctx.writeAndFlush(new RespInt(((RedisList) redisData).size()));
+        }
+    }
+    @Override
+    public void handle( RedisCore redisCore)
+    {
+        RedisData redisData = redisCore.get(key);
+        if (redisData == null)
+        {
+            RedisList redisList = new RedisList();
+            biConsumer.accept(redisList, value);
+            redisCore.put(key, redisList);
+
+        }
+        else if (redisData != null && !(redisData instanceof RedisList))
+        {
+        }
+        else
+        {
+            biConsumer.accept((RedisList) redisData, value);
+            redisCore.put(key, redisData);
         }
     }
 }

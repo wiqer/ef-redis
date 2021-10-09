@@ -4,6 +4,7 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisString;
 import com.wiqer.redis.resp.BulkString;
@@ -11,7 +12,7 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.SimpleString;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Set implements Command
+public class Set implements WriteCommand
 {
     private BytesWrapper key;
     private BytesWrapper value;
@@ -78,6 +79,30 @@ public class Set implements Command
             stringData.setTimeout(timeout);
             redisCore.put(key, stringData);
             ctx.writeAndFlush(new SimpleString("OK"));
+        }
+    }
+
+    @Override
+    public void handle(RedisCore redisCore) {
+        if (notExistSet && redisCore.exist(key))
+        {
+
+        }
+        else if (existSet && !redisCore.exist(key))
+        {
+
+        }
+        else
+        {
+            if (timeout != -1)
+            {
+                timeout += System.currentTimeMillis();
+            }
+            RedisString stringData = new RedisString();
+            stringData.setValue(value);
+            stringData.setTimeout(timeout);
+            redisCore.put(key, stringData);
+
         }
     }
 }

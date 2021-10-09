@@ -4,6 +4,7 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisZset;
 import com.wiqer.redis.resp.BulkString;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Zrem implements Command
+public class Zrem implements WriteCommand
 {
     private BytesWrapper       key;
     private List<BytesWrapper> members;
@@ -39,5 +40,11 @@ public class Zrem implements Command
         RedisZset redisZset = (RedisZset) redisCore.get(key);
         int       remove    = redisZset.remove(members);
         ctx.writeAndFlush(new RespInt(remove));
+    }
+
+    @Override
+    public void handle(RedisCore redisCore) {
+        RedisZset redisZset = (RedisZset) redisCore.get(key);
+        int       remove    = redisZset.remove(members);
     }
 }

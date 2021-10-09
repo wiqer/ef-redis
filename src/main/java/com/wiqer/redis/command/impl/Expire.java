@@ -4,6 +4,7 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.resp.BulkString;
@@ -11,7 +12,7 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Expire implements Command
+public class Expire implements WriteCommand
 {
     private BytesWrapper key;
     private int          second;
@@ -42,6 +43,18 @@ public class Expire implements Command
         {
             redisData.setTimeout(System.currentTimeMillis() + (second * 1000));
             ctx.writeAndFlush(new RespInt(1));
+        }
+    }
+
+    @Override
+    public void handle(RedisCore redisCore) {
+        RedisData redisData = redisCore.get(key);
+        if (redisData == null)
+        {
+        }
+        else
+        {
+            redisData.setTimeout(System.currentTimeMillis() + (second * 1000));
         }
     }
 }

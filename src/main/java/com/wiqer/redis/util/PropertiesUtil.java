@@ -34,6 +34,18 @@ public class PropertiesUtil {
         }
         return  aofDataDir;
     }
+
+    /**
+     * 是否开启Aof日志
+     * @return
+     */
+    public static boolean getAppendOnly() {
+        String appendOnly =getProParams().getProperty("appendonly");
+        if(!StringUtil.isNullOrEmpty(appendOnly)){
+            return appendOnly.trim().equals("yes");
+        }
+        return  false;
+    }
     public static Integer getNodePort() {
         Integer port=6379;
         try{

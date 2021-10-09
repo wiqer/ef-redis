@@ -3,6 +3,8 @@ package com.wiqer.redis.resp;
 import com.wiqer.redis.datatype.BytesWrapper;
 import io.netty.buffer.ByteBuf;
 
+import java.nio.ByteBuffer;
+
 public interface Resp
 {
 
@@ -156,7 +158,6 @@ public interface Resp
             throw new IllegalArgumentException();
         }
     }
-
     static int getNumber(ByteBuf buffer)
     {
         char t;

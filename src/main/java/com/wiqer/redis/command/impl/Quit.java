@@ -25,5 +25,6 @@ public class Quit implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         ctx.writeAndFlush(SimpleString.OK);
+        ctx.close();
     }
 }

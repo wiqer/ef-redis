@@ -3,10 +3,12 @@ package com.wiqer.redis;
 import com.wiqer.redis.aof.Aof;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandFactory;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Errors;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
+import com.wiqer.redis.util.PropertiesUtil;
 import com.wiqer.redis.util.TRACEID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,11 +16,23 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.apache.log4j.Logger;
 
 
+/**
+ * @author lilan
+ */
 public class CommandDecoder extends LengthFieldBasedFrameDecoder
 {
     private static final Logger LOGGER = Logger.getLogger(CommandDecoder.class);
     private static final int MAX_FRAME_LENGTH = Integer.MAX_VALUE;
-    private static final Aof aof=new Aof();
+    private  Aof aof=null;
+//    static {
+//        if(PropertiesUtil.getAppendOnly()) {
+//            aof=new Aof();
+//        }
+//    }
+    public CommandDecoder(  Aof aof){
+        this();
+        this.aof=aof;
+    }
     public CommandDecoder() {
         super(MAX_FRAME_LENGTH, 0, 4);
     }
@@ -44,7 +58,9 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
                 }
                 else
                 {
-                    aof.put(resp);
+                    if (aof!=null&&command instanceof WriteCommand) {
+                        aof.put(resp);
+                    }
                     return command;
                 }
             }

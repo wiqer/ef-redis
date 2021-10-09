@@ -2,6 +2,7 @@ package com.wiqer.redis;
 
 
 
+import com.wiqer.redis.aof.Aof;
 import com.wiqer.redis.util.PropertiesUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -30,7 +31,8 @@ public class MyRedisServer implements RedisServer
     private final NioEventLoopGroup boss;
     private final NioEventLoopGroup selectors;
     private final  EventExecutorGroup redisSingleEventExecutor;
-    private DefaultEventExecutorGroup defaultEventExecutorGroup;
+    private  DefaultEventExecutorGroup defaultEventExecutorGroup;
+    private Aof aof;
     public MyRedisServer()
     {
         this.boss = new NioEventLoopGroup(1, new ThreadFactory() {
@@ -55,12 +57,15 @@ public class MyRedisServer implements RedisServer
 
     public static void main(String[] args)
     {
-        new MyRedisServer().start(0);
+        new MyRedisServer().start();
     }
 
     @Override
-    public void start(int port)
+    public void start()
     {
+        if(PropertiesUtil.getAppendOnly()) {
+            aof=new Aof(this.redisCore);
+        }
         start0();
     }
 
@@ -103,7 +108,7 @@ public class MyRedisServer implements RedisServer
                         ChannelPipeline channelPipeline = socketChannel.pipeline();
                         channelPipeline.addLast(defaultEventExecutorGroup,
                                 new ResponseEncoder(),
-                                new CommandDecoder()//,
+                                new CommandDecoder(aof)//,
 //                                /*心跳,管理长连接*/
 //                                new IdleStateHandler(0, 0, 20)
                         );

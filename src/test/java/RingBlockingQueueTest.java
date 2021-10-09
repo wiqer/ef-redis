@@ -7,12 +7,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class RingBlockingQueueTest {
     @Test
     public  void RingBlockingQueueTestMain()  {
-        BlockingQueue<String> que=  new RingBlockingQueue<String>(4000,100000);
+        BlockingQueue<String> que=  new RingBlockingQueue<String>(4000,10000000);
         Long cur=System.currentTimeMillis();
         for (int i = 0; i < 10000000; i++) {
             que.add("ss"+i);
         }
-        System.out.println("HotKeyRingBlockingQueue,耗时"+(System.currentTimeMillis()-cur)+"ms");
+        System.out.println("RingBlockingQueue,耗时"+(System.currentTimeMillis()-cur)+"ms");
         BlockingQueue<String> que2=  new LinkedBlockingQueue<>(10000000);
         cur=System.currentTimeMillis();
         for (int i = 0; i < 10000000; i++) {

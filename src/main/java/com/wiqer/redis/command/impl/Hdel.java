@@ -4,6 +4,7 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisHash;
 import com.wiqer.redis.resp.BulkString;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Hdel implements Command
+public class Hdel implements WriteCommand
 {
     private BytesWrapper       key;
     private List<BytesWrapper> fields;
@@ -39,5 +40,11 @@ public class Hdel implements Command
         RedisHash redisHash = (RedisHash) redisCore.get(key);
         int       del       = redisHash.del(fields);
         ctx.writeAndFlush(new RespInt(del));
+    }
+
+    @Override
+    public void handle(RedisCore redisCore) {
+        RedisHash redisHash = (RedisHash) redisCore.get(key);
+        redisHash.del(fields);
     }
 }

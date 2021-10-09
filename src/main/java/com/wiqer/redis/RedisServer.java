@@ -2,7 +2,7 @@ package com.wiqer.redis;
 
 public interface RedisServer
 {
-    void start(int port);
+    void start();
 
     void close();
 
