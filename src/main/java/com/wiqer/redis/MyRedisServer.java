@@ -3,6 +3,8 @@ package com.wiqer.redis;
 
 
 import com.wiqer.redis.aof.Aof;
+import com.wiqer.redis.channel.DefaultChannelSelectStrategy;
+import com.wiqer.redis.channel.LocalChannelOption;
 import com.wiqer.redis.util.PropertiesUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -25,31 +27,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MyRedisServer implements RedisServer
 {
     private static final Logger LOGGER = Logger.getLogger(MyRedisServer.class);
-    private final ServerBootstrap serverBootstrap=new ServerBootstrap();
     private final RedisCore redisCore =  new RedisCoreImpl();
-    private final NioEventLoopGroup boss;
-    private final NioEventLoopGroup selectors;
+    private final ServerBootstrap serverBootstrap=new ServerBootstrap();
     private final  EventExecutorGroup redisSingleEventExecutor;
+    private final LocalChannelOption childOption;
     private Aof aof;
     public MyRedisServer()
     {
-        this.boss = new NioEventLoopGroup(4, new ThreadFactory() {
-            private AtomicInteger index = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, "Server_boss_" + index.getAndIncrement());
-            }
-        });
-
-        this.selectors = new NioEventLoopGroup(8, new ThreadFactory() {
-            private AtomicInteger index = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, "Server_selector_" + index.getAndIncrement());
-            }
-        });
+        childOption=new DefaultChannelSelectStrategy().select();
         this.redisSingleEventExecutor=new NioEventLoopGroup(1);
     }
 
@@ -71,8 +56,8 @@ public class MyRedisServer implements RedisServer
     public void close()
     {
         try {
-            boss.shutdownGracefully();
-            selectors.shutdownGracefully();
+            childOption.boss().shutdownGracefully();
+            childOption.selectors().shutdownGracefully();
             redisSingleEventExecutor.shutdownGracefully();
         }catch (Exception ignored) {
             LOGGER.warn( "Exception!", ignored);
@@ -81,7 +66,7 @@ public class MyRedisServer implements RedisServer
     public void start0() {
 
 
-        serverBootstrap.group(boss, selectors)
+        serverBootstrap.group(childOption.boss(), childOption.selectors())
                 .channel(NioServerSocketChannel.class)
                 .handler(new LoggingHandler(LogLevel.INFO))
                 .option(ChannelOption.SO_BACKLOG, 1024)
