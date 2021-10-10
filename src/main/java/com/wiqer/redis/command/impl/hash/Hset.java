@@ -1,4 +1,4 @@
-package com.wiqer.redis.command.impl;
+package com.wiqer.redis.command.impl.hash;
 
 
 import com.wiqer.redis.RedisCore;

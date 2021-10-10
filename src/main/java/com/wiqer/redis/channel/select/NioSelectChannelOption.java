@@ -4,6 +4,8 @@ import com.wiqer.redis.channel.LocalChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.NettyRuntime;
+import io.netty.util.internal.SystemPropertyUtil;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,7 +29,7 @@ public class NioSelectChannelOption implements LocalChannelOption {
             }
         });
 
-        this.selectors = new NioEventLoopGroup(8, new ThreadFactory() {
+        this.selectors = new NioEventLoopGroup( Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors())), new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
             @Override

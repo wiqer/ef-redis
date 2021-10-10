@@ -1,10 +1,25 @@
 package com.wiqer.redis.command;
 
 import com.wiqer.redis.command.impl.*;
+import com.wiqer.redis.command.impl.hash.Hdel;
+import com.wiqer.redis.command.impl.hash.Hscan;
+import com.wiqer.redis.command.impl.hash.Hset;
+import com.wiqer.redis.command.impl.list.Lpush;
+import com.wiqer.redis.command.impl.list.Lrange;
+import com.wiqer.redis.command.impl.list.Lrem;
+import com.wiqer.redis.command.impl.set.Sadd;
+import com.wiqer.redis.command.impl.set.Scan;
+import com.wiqer.redis.command.impl.set.Srem;
+import com.wiqer.redis.command.impl.set.Sscan;
+import com.wiqer.redis.command.impl.string.Get;
+import com.wiqer.redis.command.impl.string.Set;
+import com.wiqer.redis.command.impl.string.SetEx;
+import com.wiqer.redis.command.impl.string.SetNx;
+import com.wiqer.redis.command.impl.zset.Zadd;
+import com.wiqer.redis.command.impl.zset.Zrem;
+import com.wiqer.redis.command.impl.zset.Zrevrange;
 
 import java.util.function.Supplier;
-
-import static sun.rmi.transport.TransportConstants.Ping;
 
 public enum CommandType
 {

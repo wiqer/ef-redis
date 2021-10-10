@@ -1,4 +1,4 @@
-package com.wiqer.redis.command.impl;
+package com.wiqer.redis.command.impl.hash;
 
 
 import com.wiqer.redis.RedisCore;
@@ -6,7 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisSet;
+import com.wiqer.redis.datatype.RedisHash;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
@@ -16,35 +16,35 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Srem implements WriteCommand
+public class Hdel implements WriteCommand
 {
     private BytesWrapper       key;
-    private List<BytesWrapper> members;
+    private List<BytesWrapper> fields;
 
     @Override
     public CommandType type()
     {
-        return CommandType.srem;
+        return CommandType.hdel;
     }
 
     @Override
     public void setContent(Resp[] array)
     {
         key = ((BulkString) array[1]).getContent();
-        members = Stream.of(array).skip(2).map(resp -> ((BulkString) resp).getContent()).collect(Collectors.toList());
+        fields = Stream.of(array).skip(2).map(resp -> ((BulkString) resp).getContent()).collect(Collectors.toList());
     }
 
     @Override
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
-        RedisSet redisSet = (RedisSet) redisCore.get(key);
-        int      srem     = redisSet.srem(members);
-        ctx.writeAndFlush(new RespInt(srem));
+        RedisHash redisHash = (RedisHash) redisCore.get(key);
+        int       del       = redisHash.del(fields);
+        ctx.writeAndFlush(new RespInt(del));
     }
 
     @Override
     public void handle(RedisCore redisCore) {
-        RedisSet redisSet = (RedisSet) redisCore.get(key);
-        redisSet.srem(members);
+        RedisHash redisHash = (RedisHash) redisCore.get(key);
+        redisHash.del(fields);
     }
 }

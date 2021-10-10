@@ -33,4 +33,10 @@ public class CommandHandler extends SimpleChannelInboundHandler<Command> // Read
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOGGER.error(" ExceptionCaught：",cause);
     }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        ctx.close();
+    }
 }

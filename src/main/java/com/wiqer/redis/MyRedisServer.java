@@ -13,7 +13,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.EventExecutorGroup;
@@ -21,20 +20,21 @@ import org.apache.log4j.Logger;
 
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author Administrator
+ */
 public class MyRedisServer implements RedisServer
 {
     private static final Logger LOGGER = Logger.getLogger(MyRedisServer.class);
     private final RedisCore redisCore =  new RedisCoreImpl();
     private final ServerBootstrap serverBootstrap=new ServerBootstrap();
     private final  EventExecutorGroup redisSingleEventExecutor;
-    private final LocalChannelOption childOption;
+    private final LocalChannelOption channelOption;
     private Aof aof;
     public MyRedisServer()
     {
-        childOption=new DefaultChannelSelectStrategy().select();
+        channelOption=new DefaultChannelSelectStrategy().select();
         this.redisSingleEventExecutor=new NioEventLoopGroup(1);
     }
 
@@ -56,8 +56,8 @@ public class MyRedisServer implements RedisServer
     public void close()
     {
         try {
-            childOption.boss().shutdownGracefully();
-            childOption.selectors().shutdownGracefully();
+            channelOption.boss().shutdownGracefully();
+            channelOption.selectors().shutdownGracefully();
             redisSingleEventExecutor.shutdownGracefully();
         }catch (Exception ignored) {
             LOGGER.warn( "Exception!", ignored);
@@ -66,8 +66,8 @@ public class MyRedisServer implements RedisServer
     public void start0() {
 
 
-        serverBootstrap.group(childOption.boss(), childOption.selectors())
-                .channel(NioServerSocketChannel.class)
+        serverBootstrap.group(channelOption.boss(), channelOption.selectors())
+                .channel(channelOption.getChannelClass())
                 .handler(new LoggingHandler(LogLevel.INFO))
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .option(ChannelOption.SO_REUSEADDR, true)

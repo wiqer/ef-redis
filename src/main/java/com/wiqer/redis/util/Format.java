@@ -16,10 +16,6 @@ public class Format {
     public static int uintNBit(long z,int n) {
         return (int)(z&((1<<n)-1));
     }
-
-    public static void main(String[] args) {
-        System.out.println(uintNBit(26L,26));
-    }
     public static String digits(int val, int digits) {
         char[] buf = new char[digits];
         do {

@@ -1,7 +1,8 @@
-package com.wiqer.redis.command.impl;
+package com.wiqer.redis.command.impl.set;
 
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.command.impl.AbstraceScan;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisSet;
 import com.wiqer.redis.resp.BulkString;
