@@ -26,7 +26,7 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
 //            aof=new Aof();
 //        }
 //    }
-    public CommandDecoder(  Aof aof){
+    public CommandDecoder(Aof aof){
         this();
         this.aof=aof;
     }

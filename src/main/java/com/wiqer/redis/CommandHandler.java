@@ -23,10 +23,16 @@ public class CommandHandler extends SimpleChannelInboundHandler<Command> // Read
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Command command) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Command command) throws Exception {
         String traceId = TRACEID.currentTraceId();
         LOGGER.debug("traceId:"+ traceId+" 本次处理的命令："+command.type().name());
-        command.handle(channelHandlerContext, redisCore);
+        try{
+            command.handle(ctx, redisCore);
+
+        }catch(Exception e){
+            LOGGER.error("处理数据时",e);
+        }
+
         LOGGER.debug("traceId:"+traceId+" 命令处理完毕");
     }
     @Override
@@ -39,4 +45,9 @@ public class CommandHandler extends SimpleChannelInboundHandler<Command> // Read
         super.channelUnregistered(ctx);
         ctx.close();
     }
+//    @Override
+//    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+//        super.channelUnregistered(ctx);
+//        ctx.flush();
+//    }
 }
