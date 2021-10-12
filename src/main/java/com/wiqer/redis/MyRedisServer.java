@@ -5,6 +5,7 @@ package com.wiqer.redis;
 import com.wiqer.redis.aof.Aof;
 import com.wiqer.redis.channel.DefaultChannelSelectStrategy;
 import com.wiqer.redis.channel.LocalChannelOption;
+import com.wiqer.redis.channel.single.SingleSelectChannelOption;
 import com.wiqer.redis.util.PropertiesUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -37,10 +38,14 @@ public class MyRedisServer implements RedisServer
         channelOption=new DefaultChannelSelectStrategy().select();
         this.redisSingleEventExecutor=new NioEventLoopGroup(1);
     }
-
+    public MyRedisServer(LocalChannelOption channelOption)
+    {
+        this.channelOption=channelOption;
+        this.redisSingleEventExecutor=new NioEventLoopGroup(1);
+    }
     public static void main(String[] args)
     {
-        new MyRedisServer().start();
+        new MyRedisServer(new SingleSelectChannelOption()).start();
     }
 
     @Override

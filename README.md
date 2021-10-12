@@ -8,7 +8,9 @@ ef-Redis是java 版本的redis server
 
 存储：仅支持AOF日志
 
-多路复用：支持 epoll，kqueue，select 默认优先级由高到低，同时支持本地和单路单路复用
+多路复用：支持 epoll，kqueue，select 默认优先级由高到低，同时支持本地和单路复用
+
+强烈推荐使用单路select线程模型
 #### 解决问题
 
 1,启动简单，方便测试
