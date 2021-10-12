@@ -47,7 +47,7 @@ public class Aof {
     private  String fileName= PropertiesUtil.getAofPath();
 
     private RingBlockingQueue<Resp> runtimeRespQueue=new RingBlockingQueue<Resp>(8888,888888);
-    ByteBuf bufferPolled= new PooledByteBufAllocator().buffer(8888);
+    ByteBuf bufferPolled= new PooledByteBufAllocator().buffer(8888, 2147483647);
 //    private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
     private ScheduledThreadPoolExecutor persistenceExecutor=new ScheduledThreadPoolExecutor(2,new ThreadFactory() {
         @Override
