@@ -11,10 +11,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <netty4.version>4.1.42.Final</netty4.version>
+        <netty4.version>4.1.66.Final</netty4.version>
     </properties>
 
-
+    <repositories>
+        <repository>
+            <id>oss</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
