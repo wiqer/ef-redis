@@ -70,7 +70,7 @@ public class Sadd implements WriteCommand
         else if (redisData instanceof RedisSet)
         {
             RedisSet redisSet = (RedisSet) redisData;
-            int      sadd     = redisSet.sadd(member);
+            redisSet.sadd(member);
         }
         else
         {

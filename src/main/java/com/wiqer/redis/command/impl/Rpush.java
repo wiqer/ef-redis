@@ -1,13 +1,14 @@
 package com.wiqer.redis.command.impl;
 
 import com.wiqer.redis.command.CommandType;
+import com.wiqer.redis.datatype.RedisList;
 
 public class Rpush extends Push
 {
 
     public Rpush()
     {
-        super((redisList, values) -> redisList.rpush(values));
+        super(RedisList::rpush);
     }
 
     @Override

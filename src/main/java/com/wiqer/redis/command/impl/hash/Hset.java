@@ -62,13 +62,13 @@ public class Hset implements WriteCommand
         if (redisData == null)
         {
             RedisHash redisHash = new RedisHash();
-            int       put       = redisHash.put(field, value);
+            redisHash.put(field, value);
             redisCore.put(key, redisHash);
         }
         else if (redisData instanceof RedisHash)
         {
             RedisHash redisHash = (RedisHash) redisData;
-            int       put       = redisHash.put(field, value);
+             redisHash.put(field, value);
         }
         else
         {

@@ -39,8 +39,7 @@ public class Lrange implements Command
     {
         RedisList          redisList = (RedisList) redisCore.get(key);
         List<BytesWrapper> lrang     = redisList.lrang(start, end);
-        List<BulkString>   collect   = lrang.stream().map(value -> new BulkString(value)).collect(Collectors.toList());
-        RespArray          respArray = new RespArray(collect.toArray(new Resp[collect.size()]));
+        RespArray          respArray = new RespArray(lrang.stream().map(BulkString::new).toArray(Resp[]::new));
         ctx.writeAndFlush(respArray);
     }
 }

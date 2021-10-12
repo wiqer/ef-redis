@@ -35,12 +35,11 @@ public class Hscan extends AbstraceScan
     {
         RedisHash                       redisHash = (RedisHash) redisCore.get(key);
         Map<BytesWrapper, BytesWrapper> map       = redisHash.getMap();
-        List<Resp> respArrays = map.entrySet().stream().flatMap(entry -> {
+        return new RespArray(map.entrySet().stream().flatMap(entry -> {
             Resp[] resps = new Resp[2];
             resps[0] = new BulkString(entry.getKey());
             resps[1] = new BulkString(entry.getValue());
             return Stream.of(resps);
-        }).collect(Collectors.toList());
-        return new RespArray(respArrays.toArray(new Resp[respArrays.size()]));
+        }).toArray(Resp[]::new));
     }
 }

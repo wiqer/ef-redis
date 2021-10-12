@@ -18,7 +18,6 @@ public class BytesWrapper implements Comparable<BytesWrapper>
     {
         return content;
     }
-
     @Override
     public boolean equals(Object o)
     {

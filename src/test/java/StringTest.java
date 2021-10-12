@@ -1,8 +1,11 @@
+import com.wiqer.redis.util.Format;
 import com.wiqer.redis.util.StringUtil;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class StringTest {
     @Test
@@ -34,7 +37,20 @@ public class StringTest {
     public  void toInternal2() {
 
         String i="666";
-        System.out.println(this.parseInt(i.getBytes(StandardCharsets.UTF_8),10));
+        System.out.println(this.parseInt(i.getBytes(UTF_8),10));
+    }
+    @Test
+    public  void toInternal3() {
+
+        String i="666";
+
+        long value=Format.parseLong(i.getBytes(UTF_8),10);
+        System.out.println(
+                value
+        );
+        System.out.println(
+               new String(Format.toByteArray( value),UTF_8)
+        );
     }
     public  long parseInt(byte[] content, int radix)
             throws NumberFormatException

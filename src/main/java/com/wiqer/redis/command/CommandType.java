@@ -11,10 +11,7 @@ import com.wiqer.redis.command.impl.set.Sadd;
 import com.wiqer.redis.command.impl.set.Scan;
 import com.wiqer.redis.command.impl.set.Srem;
 import com.wiqer.redis.command.impl.set.Sscan;
-import com.wiqer.redis.command.impl.string.Get;
-import com.wiqer.redis.command.impl.string.Set;
-import com.wiqer.redis.command.impl.string.SetEx;
-import com.wiqer.redis.command.impl.string.SetNx;
+import com.wiqer.redis.command.impl.string.*;
 import com.wiqer.redis.command.impl.zset.Zadd;
 import com.wiqer.redis.command.impl.zset.Zrem;
 import com.wiqer.redis.command.impl.zset.Zrevrange;
@@ -29,7 +26,7 @@ public enum CommandType
     setnx(SetNx::new), lpush(Lpush::new), lrange(Lrange::new), lrem(Lrem::new), rpush(Rpush::new), del(Del::new), sadd(Sadd::new),//
     sscan(Sscan::new), srem(Srem::new), hset(Hset::new), hscan(Hscan::new), hdel(Hdel::new),//
     zadd(Zadd::new), zrevrange(Zrevrange::new), zrem(Zrem::new), setex(SetEx::new), exists(Exists::new), expire(Expire::new),
-    ping(Ping::new),select(Select::new),keys(Keys::new),
+    ping(Ping::new),select(Select::new),keys(Keys::new),incr(Incr::new),decr(Decr::new),mset(Mset::new),mget(Mget::new),
     //
     ;
 

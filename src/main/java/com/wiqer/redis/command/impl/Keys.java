@@ -40,17 +40,7 @@ public class Keys implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         Set<BytesWrapper> keySet= redisCore.keys();
-//       List<BytesWrapper> keyList= keySet.stream().filter(k->{
-//            String content=null;
-//            try {
-//                content=k.toUtf8String();
-//            }catch (Exception e) {
-//                System.out.println(e.getMessage());
-//            }
-//
-//            Boolean matched= Pattern.matches(pattern, content);
-//            return matched;
-//        }).collect(Collectors.toList());
+
         Resp[] resps = keySet.stream().filter(k->{
             String content=null;
             try {
