@@ -17,6 +17,8 @@ ef-Redis是java 版本的redis server
 
 2,解除喜欢刨根问底的开发者，对大厂面试官面试redis相关问题的迷惑侧重点的迷惑
 
+3,为redis proxy 开发提供技术参考
+
 #### EF-Redis功能介绍
 
 支持服务间的消息传递和数据共享
