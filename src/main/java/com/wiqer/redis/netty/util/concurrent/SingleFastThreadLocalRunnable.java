@@ -10,6 +10,7 @@ class SingleFastThreadLocalRunnable implements Runnable {
         this.runnable = (Runnable) ObjectUtil.checkNotNull(runnable, "runnable");
     }
 
+    @Override
     public void run() {
         try {
             this.runnable.run();

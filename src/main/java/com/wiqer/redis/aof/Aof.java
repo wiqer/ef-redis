@@ -35,7 +35,9 @@ import java.util.logging.Logger;
  * @author lilan
  */
 public class Aof {
+
     private static final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Aof.class);
+
     private static final  String suffix=".aof";
 
     /**
@@ -43,18 +45,23 @@ public class Aof {
      * 2,存盘偏移量，控制单个持久化文件大小
      */
     public static final int shiftBit =26;
+
     private   Long aofPutIndex=0L;
+
     private  String fileName= PropertiesUtil.getAofPath();
 
     private RingBlockingQueue<Resp> runtimeRespQueue=new RingBlockingQueue<Resp>(8888,888888);
+
     ByteBuf bufferPolled= new PooledByteBufAllocator().buffer(8888, 2147483647);
-//    private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
+    //private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
+
     private ScheduledThreadPoolExecutor persistenceExecutor=new ScheduledThreadPoolExecutor(1,new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "Aof_Single_Thread");
         }
     });
+
     private final RedisCore redisCore;
 
     /**

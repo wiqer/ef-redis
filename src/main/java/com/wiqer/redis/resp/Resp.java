@@ -7,217 +7,170 @@ import java.nio.ByteBuffer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public interface Resp
-{
+/**
+ * @author Administrator
+ */
+public interface Resp {
 
-    static void write(Resp resp, ByteBuf buffer)
-    {
-        if (resp instanceof SimpleString)
-        {
-            buffer.writeByte((byte) '+');
-            String content   = ((SimpleString) resp).getContent();
+    static void write(Resp resp, ByteBuf buffer) {
+        if (resp instanceof SimpleString) {
+            buffer.writeByte(RespType.STATUS.getCode());
+            String content = ((SimpleString) resp).getContent();
             char[] charArray = content.toCharArray();
-            for (char each : charArray)
-            {
+            for (char each : charArray) {
                 buffer.writeByte((byte) each);
             }
-            buffer.writeByte((byte) '\r');
-            buffer.writeByte((byte) '\n');
-        }
-        else if (resp instanceof Errors)
-        {
-            buffer.writeByte((byte) '-');
-            String content   = ((Errors) resp).getContent();
+            buffer.writeByte(RespType.R.getCode());
+            buffer.writeByte(RespType.N.getCode());
+        } else if (resp instanceof Errors) {
+            buffer.writeByte(RespType.ERROR.getCode());
+            String content = ((Errors) resp).getContent();
             char[] charArray = content.toCharArray();
-            for (char each : charArray)
-            {
+            for (char each : charArray) {
                 buffer.writeByte((byte) each);
             }
-            buffer.writeByte((byte) '\r');
-            buffer.writeByte((byte) '\n');
-        }
-        else if (resp instanceof RespInt)
-        {
-            buffer.writeByte((byte) ':');
-            String content   = String.valueOf(((RespInt) resp).getValue());
+            buffer.writeByte(RespType.R.getCode());
+            buffer.writeByte(RespType.N.getCode());
+        } else if (resp instanceof RespInt) {
+            buffer.writeByte(RespType.INTEGER.getCode());
+            String content = String.valueOf(((RespInt) resp).getValue());
             char[] charArray = content.toCharArray();
-            for (char each : charArray)
-            {
+            for (char each : charArray) {
                 buffer.writeByte((byte) each);
             }
-            buffer.writeByte((byte) '\r');
-            buffer.writeByte((byte) '\n');
-        }
-        else if (resp instanceof BulkString)
-        {
-            buffer.writeByte((byte) '$');
+            buffer.writeByte(RespType.R.getCode());
+            buffer.writeByte(RespType.N.getCode());
+        } else if (resp instanceof BulkString) {
+            buffer.writeByte(RespType.BULK.getCode());
             BytesWrapper content = ((BulkString) resp).getContent();
-            if (content == null)
-            {
-                buffer.writeByte((byte) '-');
-                buffer.writeByte((byte) '1');
-                buffer.writeByte((byte) '\r');
-                buffer.writeByte((byte) '\n');
-            }
-            else if (content.getByteArray().length == 0)
-            {
-                buffer.writeByte((byte) '0');
-                buffer.writeByte((byte) '\r');
-                buffer.writeByte((byte) '\n');
-                buffer.writeByte((byte) '\r');
-                buffer.writeByte((byte) '\n');
-            }
-            else
-            {
-                String length    = String.valueOf(content.getByteArray().length);
+            if (content == null) {
+                buffer.writeByte(RespType.ERROR.getCode());
+                buffer.writeByte(RespType.ONE.getCode());
+                buffer.writeByte(RespType.R.getCode());
+                buffer.writeByte(RespType.N.getCode());
+            } else if (content.getByteArray().length == 0) {
+                buffer.writeByte(RespType.ZERO.getCode());
+                buffer.writeByte(RespType.R.getCode());
+                buffer.writeByte(RespType.N.getCode());
+                buffer.writeByte(RespType.R.getCode());
+                buffer.writeByte(RespType.N.getCode());
+            } else {
+                String length = String.valueOf(content.getByteArray().length);
                 char[] charArray = length.toCharArray();
-                for (char each : charArray)
-                {
+                for (char each : charArray) {
                     buffer.writeByte((byte) each);
                 }
-                buffer.writeByte((byte) '\r');
-                buffer.writeByte((byte) '\n');
+                buffer.writeByte(RespType.R.getCode());
+                buffer.writeByte(RespType.N.getCode());
                 buffer.writeBytes(content.getByteArray());
-                buffer.writeByte((byte) '\r');
-                buffer.writeByte((byte) '\n');
+                buffer.writeByte(RespType.R.getCode());
+                buffer.writeByte(RespType.N.getCode());
             }
-        }
-        else if (resp instanceof RespArray)
-        {
-            buffer.writeByte((byte) '*');
-            Resp[] array     = ((RespArray) resp).getArray();
-            String length    = String.valueOf(array.length);
+        } else if (resp instanceof RespArray) {
+            buffer.writeByte(RespType.MULTYBULK.getCode());
+            Resp[] array = ((RespArray) resp).getArray();
+            String length = String.valueOf(array.length);
             char[] charArray = length.toCharArray();
-            for (char each : charArray)
-            {
+            for (char each : charArray) {
                 buffer.writeByte((byte) each);
             }
-            buffer.writeByte((byte) '\r');
-            buffer.writeByte((byte) '\n');
-            for (Resp each : array)
-            {
+            buffer.writeByte(RespType.R.getCode());
+            buffer.writeByte(RespType.N.getCode());
+            for (Resp each : array) {
                 write(each, buffer);
             }
-        }
-        else
-        {
-            throw new IllegalArgumentException()
-                    ;
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
     /**
      * 无法解码压测客户端
+     *
      * @param buffer
      * @return
      */
-    static Resp decode(ByteBuf buffer)
-    {
-       // System.out.println(new String(buffer.array(),UTF_8));
-        if(buffer.readableBytes()<=0) {
-             new IllegalStateException("没有读取到完整的命令");;
+    static Resp decode(ByteBuf buffer) {
+        // System.out.println(new String(buffer.array(),UTF_8));
+        if (buffer.readableBytes() <= 0) {
+            new IllegalStateException("没有读取到完整的命令");
+            ;
         }
         char c = (char) buffer.readByte();
-        if (c == '+')
-        {
+        if (c == RespType.STATUS.getCode()) {
             return new SimpleString(getString(buffer));
-        }
-        else if (c == '-')
-        {
+        } else if (c == RespType.ERROR.getCode()) {
             return new Errors(getString(buffer));
-        }
-        else if (c == ':')
-        {
+        } else if (c == RespType.INTEGER.getCode()) {
             int value = getNumber(buffer);
             return new RespInt(value);
-        }
-        else if (c == '$')
-        {
+        } else if (c == RespType.BULK.getCode()) {
             int length = getNumber(buffer);
-            if (buffer.readableBytes() < length + 2)
-            {
+            if (buffer.readableBytes() < length + 2) {
                 throw new IllegalStateException("没有读取到完整的命令");
             }
             byte[] content;
-            if (length == -1)
-            {
+            if (length == -1) {
                 content = null;
-            }
-            else
-            {
+            } else {
                 content = new byte[length];
                 buffer.readBytes(content);
             }
-            if (buffer.readByte() != '\r' || buffer.readByte() != '\n')
-            {
+            if (buffer.readByte() != RespType.R.getCode() || buffer.readByte() != RespType.N.getCode()) {
                 throw new IllegalStateException("没有读取到完整的命令");
             }
             return new BulkString(new BytesWrapper(content));
-        }
-        else if (c == '*')
-        {
-            int    numOfElement = getNumber(buffer);
-            Resp[] array        = new Resp[numOfElement];
-            for (int i = 0; i < numOfElement; i++)
-            {
+        } else if (c == RespType.MULTYBULK.getCode()) {
+            int numOfElement = getNumber(buffer);
+            Resp[] array = new Resp[numOfElement];
+            for (int i = 0; i < numOfElement; i++) {
                 array[i] = decode(buffer);
             }
             return new RespArray(array);
-        }
-        else
-        {
+        } else {
             /**
              * A~Z
              */
-            if(c>64&&c<91){
-                return new SimpleString(c+getString(buffer));
-            }else{
+            if (c > 64 && c < 91) {
+                return new SimpleString(c + getString(buffer));
+            } else {
                 return decode(buffer);
             }
 
             //throw new IllegalArgumentException("意外地命令");
         }
     }
-    static int getNumber(ByteBuf buffer)
-    {
+
+    static int getNumber(ByteBuf buffer) {
         char t;
         t = (char) buffer.readByte();
         boolean positive = true;
-        int     value    = 0;
+        int value = 0;
         // 错误（Errors）： 响应的首字节是 "-"
-        if (t == '-')
-        {
+        if (t == RespType.ERROR.getCode()) {
             positive = false;
+        } else {
+            value = t - RespType.ZERO.getCode();
         }
-        else
-        {
-            value = t - '0';
+        while (buffer.readableBytes() > 0 && (t = (char) buffer.readByte()) != RespType.R.getCode()) {
+            value = value * 10 + (t - RespType.ZERO.getCode());
         }
-        while (buffer.readableBytes() > 0 && (t = (char) buffer.readByte()) != '\r')
-        {
-            value = value * 10 + (t - '0');
-        }
-        if (buffer.readableBytes() == 0 || buffer.readByte() != '\n')
-        {
+        if (buffer.readableBytes() == 0 || buffer.readByte() != RespType.N.getCode()) {
             throw new IllegalStateException("没有读取到完整的命令");
         }
-        if (!positive)
-        {
+        if (!positive) {
             value = -value;
         }
         return value;
     }
 
-    static String getString(ByteBuf buffer)
-    {
-        char          c;
+    static String getString(ByteBuf buffer) {
+        char c;
         StringBuilder builder = new StringBuilder();
-        while (buffer.readableBytes() > 0 && (c = (char) buffer.readByte()) != '\r')
-        {
+        while (buffer.readableBytes() > 0 && (c = (char) buffer.readByte()) != RespType.R.getCode()) {
             builder.append(c);
         }
-        if (buffer.readableBytes() == 0 || buffer.readByte() != '\n')
-        {
+        if (buffer.readableBytes() == 0 || buffer.readByte() != RespType.N.getCode()) {
             throw new IllegalStateException("没有读取到完整的命令");
         }
         return builder.toString();

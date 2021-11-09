@@ -28,6 +28,7 @@ ef-Redis是java 版本的redis server
 集群架构方式：客户端路由
 
 见作者知乎文档：
+
 [微服务集群架构实现一览](https://zhuanlan.zhihu.com/p/368407754)
 
 

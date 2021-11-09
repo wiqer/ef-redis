@@ -28,7 +28,7 @@ public class RedisSet implements RedisData
 
     public int sadd(List<BytesWrapper> members)
     {
-        return (int) members.stream().filter(member -> set.add(member)).count();
+        return (int) members.stream().filter(set::add).count();
     }
 
     public Collection<BytesWrapper> keys()
@@ -38,6 +38,6 @@ public class RedisSet implements RedisData
 
     public int srem(List<BytesWrapper> members)
     {
-        return (int) members.stream().filter(member -> set.remove(member)).count();
+        return (int) members.stream().filter(set::remove).count();
     }
 }

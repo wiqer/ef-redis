@@ -20,7 +20,9 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
      */
     static final int MAXIMUM_CAPACITY = 1 << 29;
 
-    //一块连续内存页肯定能装下
+    /**
+     * 一块连续内存页肯定能装下
+     */
     static final int MAXIMUM_SUBAREA = 1 << 12;
 
     Object data[][];
