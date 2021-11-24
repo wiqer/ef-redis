@@ -57,6 +57,9 @@ b站搜索 “韩顺平netty”
 
 [REDIS命令大全](https://www.redis.com.cn/commands.html)
 
+[ef-redis 源码解析](https://zhuanlan.zhihu.com/p/434698347)
+
+
 
 
 ####  EF-Redis启动步骤
