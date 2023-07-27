@@ -28,7 +28,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 
 /**
@@ -90,19 +89,14 @@ public class Aof {
         /**
          * 谁先执行需要顺序异步执行
          */
-        persistenceExecutor.execute(()-> pickupDiskDataAllSegment());
-        persistenceExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                downDiskAllSegment();
-            }
-        }, 10, 1, TimeUnit.SECONDS);
+        persistenceExecutor.execute(this::pickupDiskDataAllSegment);
+        persistenceExecutor.scheduleAtFixedRate(this::downDiskAllSegment, 10, 1, TimeUnit.SECONDS);
     }
     public void close(){
         try {
             persistenceExecutor.shutdown();
-        }catch (Exception ignored) {
-            LOGGER.warn( "Exception!", ignored);
+        }catch (Exception exp) {
+            LOGGER.warn( "Exception!", exp);
         }
     }
     /**
@@ -142,8 +136,6 @@ public class Aof {
                             break  Segment;
                         }
                         Resp.write(resp,bufferPolled);
-                        //ByteBuffer buffer=bufferPolled.nioBuffer();
-                        //putIndex+=bufferPolled.readableBytes();
                         int respLen=bufferPolled.readableBytes();
                         if((mappedByteBuffer.capacity()<=respLen+putIndex)){
                             len+= 1L <<(shiftBit-3);
@@ -163,9 +155,6 @@ public class Aof {
                          */
                         aofPutIndex= baseOffset+putIndex;
                         runtimeRespQueue.poll();
-//                        mappedByteBuffer.put(bufferPolled.array(),0,bufferPolled.readableBytes());
-//                        bufferPolled.readByte();
-//                        putIndex+=bufferPolled.readableBytes();
                         bufferPolled.clear();
                         if(len-putIndex < (1L <<(shiftBit-3))){
                             len+= 1L <<(shiftBit-3);
@@ -177,9 +166,6 @@ public class Aof {
                             }
                             mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0,len);
                         }
-
-
-
                     }while (true);
 
                 }
@@ -204,8 +190,6 @@ public class Aof {
     public void  pickupDiskDataAllSegment()  {
         if( reentrantLock.writeLock().tryLock()) {
             try {
-
-
                 long segmentId=-1;
                 Segment:
                 while (segmentId!=(aofPutIndex>>shiftBit)) {
@@ -234,6 +218,7 @@ public class Aof {
                         }
                         Command command = CommandFactory.from((RespArray) resp);
                         WriteCommand writeCommand=   (WriteCommand)command;
+                        assert writeCommand != null;
                         writeCommand.handle(this.redisCore);
                         putIndex=bufferPolled.readerIndex();
                         aofPutIndex=putIndex+ baseOffset;
@@ -248,8 +233,6 @@ public class Aof {
 
                 }
 
-            } catch (IOException e) {
-                e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -275,20 +258,18 @@ public class Aof {
             return;
         }
         buffer.force();
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {//Privileged特权
-            @Override
-            public Object run() {
-                try {
-                    // System.out.println(buffer.getClass().getName());
-                    Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
-                    getCleanerMethod.setAccessible(true);
-                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
-                    cleaner.clean();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
+        //Privileged特权
+        AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+            try {
+                // System.out.println(buffer.getClass().getName());
+                Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+                getCleanerMethod.setAccessible(true);
+                sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
+                cleaner.clean();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            return null;
         });
     }
 }
