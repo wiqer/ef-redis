@@ -93,8 +93,7 @@ public interface Resp {
     static Resp decode(ByteBuf buffer) {
         // System.out.println(new String(buffer.array(),UTF_8));
         if (buffer.readableBytes() <= 0) {
-            new IllegalStateException("没有读取到完整的命令");
-            ;
+            throw new IllegalStateException("没有读取到完整的命令");
         }
         char c = (char) buffer.readByte();
         if (c == RespType.STATUS.getCode()) {
