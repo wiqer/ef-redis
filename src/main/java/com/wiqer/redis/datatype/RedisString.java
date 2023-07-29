@@ -36,4 +36,11 @@ public class RedisString implements RedisData
     {
         this.timeout = timeout;
     }
+
+    @Override
+    public void clear() {
+        this.value = null;
+        this.timeout = -1;
+    }
+
 }

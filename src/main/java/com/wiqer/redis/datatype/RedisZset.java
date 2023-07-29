@@ -55,7 +55,24 @@ public class RedisZset implements RedisData
 
     public int remove(List<BytesWrapper> members)
     {
-        return (int) members.stream().filter(member ->map.remove(new ZsetKey(member,0))!=null).count();
+        return (int) members.stream().peek(RedisBaseData::recovery).filter(member ->map.remove(new ZsetKey(member,0))!=null).count();
+    }
+
+    @Override
+    public void clear() {
+        timeout = -1;
+        map = new TreeMap<>(new Comparator<ZsetKey>()
+        {
+            @Override
+            public int compare(ZsetKey o1, ZsetKey o2)
+            {
+                if (o1.key.equals(o2.key))
+                {
+                    return 0;
+                }
+                return Long.compare(o1.score, o2.score);
+            }
+        });
     }
 
     public static class ZsetKey

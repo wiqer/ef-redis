@@ -12,7 +12,7 @@ public class RedisSet implements RedisData
 {
     private long timeout = -1;
 
-    private final Set<BytesWrapper> set = new HashSet<>();
+    private Set<BytesWrapper> set = new HashSet<>();
 
     @Override
     public long timeout()
@@ -38,6 +38,13 @@ public class RedisSet implements RedisData
 
     public int srem(List<BytesWrapper> members)
     {
-        return (int) members.stream().filter(set::remove).count();
+        return (int) members.stream().peek(RedisBaseData::recovery).filter(set::remove).count();
     }
+
+    @Override
+    public void clear() {
+        set = new HashSet<>();
+        timeout = -1;
+    }
+
 }

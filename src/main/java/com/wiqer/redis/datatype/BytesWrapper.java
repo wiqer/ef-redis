@@ -7,10 +7,10 @@ import java.util.Arrays;
 /**
  * @author lilan
  */
-public class BytesWrapper implements Comparable<BytesWrapper>
+public class BytesWrapper implements Comparable<BytesWrapper>, RedisBaseData
 {
     static final Charset CHARSET = StandardCharsets.UTF_8;
-    private final byte[] content;
+    private  byte[] content;
 
     public BytesWrapper(byte[] content) {this.content = content;}
 
@@ -64,4 +64,10 @@ public class BytesWrapper implements Comparable<BytesWrapper>
         }
         return len1 - len2;
     }
+
+    @Override
+    public void clear() {
+        content = null;
+    }
+
 }

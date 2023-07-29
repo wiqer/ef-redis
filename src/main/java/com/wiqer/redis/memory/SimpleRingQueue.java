@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 线程不安全的BlockingQueue，尽量单线程使用，尽量使用 offer和poll两个底层方法
  * @param <E> 泛型
  */
-public class SimpleRingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
+public class SimpleRingQueue<E> extends AbstractQueue<E> implements java.io.Serializable {
 
     /**
      * The maximum capacity, used if a higher value is implicitly specified
@@ -89,22 +89,18 @@ public class SimpleRingQueue<E> extends AbstractQueue<E> implements BlockingQueu
      */
     public SimpleRingQueue(Collection<? extends E> c) {
         this(8888,88888);
-        try {
-            int n = 0;
-            for (E e : c) {
-                if (e == null) {
-                    throw new NullPointerException();
-                }
-                if (n == capacity) {
-                    throw new IllegalStateException("Queue full");
-                }
-                put(e);
-                ++n;
+        int n = 0;
+        for (E e : c) {
+            if (e == null) {
+                throw new NullPointerException();
             }
-            count.set(n);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if (n == capacity) {
+                throw new IllegalStateException("Queue full");
+            }
+            offer(e);
+            ++n;
         }
+        count.set(n);
     }
 
     static final int tableSizeFor(int cap) {
@@ -218,69 +214,8 @@ public class SimpleRingQueue<E> extends AbstractQueue<E> implements BlockingQueu
         return (E)data[row][column];
     }
 
-    @Override
-    public void put(E o) throws InterruptedException {
-        if (o == null) {
-            throw new NullPointerException();
-        }
-        int c = -1;
-        final AtomicInteger count = this.count;
-        offer(o);
-        c = count.getAndIncrement();
-    }
-
-    @Override
-    public boolean offer(Object o, long timeout, TimeUnit unit) throws InterruptedException {
-        if (o == null) {
-            throw new NullPointerException();
-        }
-        long nanos = unit.toNanos(timeout);
-        int c = -1;
-
-        final AtomicInteger count = this.count;
-
-        while (count.get() == capacity) {
-            if (nanos <= 0) {
-                return false;
-            }
-        }
-        offer(o);
-        c = count.getAndIncrement();
 
 
-        return true;
-    }
-
-    @Override
-    public E take() throws InterruptedException {
-        E x;
-        int c = -1;
-        final AtomicInteger count = this.count;
-        x = poll();
-        c = count.getAndDecrement();
-        return x;
-
-    }
-
-    @Override
-    public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-        E x = null;
-        int c = -1;
-        long nanos = unit.toNanos(timeout);
-        final AtomicInteger count = this.count;
-
-            while (count.get() == 0) {
-                if (nanos <= 0) {
-                    return null;
-                }
-            }
-            x = poll();
-            c = count.getAndDecrement();
-
-        return x;
-    }
-
-    @Override
     public int remainingCapacity() {
         return capacity - count.get();
     }
@@ -352,6 +287,11 @@ public class SimpleRingQueue<E> extends AbstractQueue<E> implements BlockingQueu
         return count.get()==0;
     }
 
+    public boolean isFull() {
+        return count.get() == capacity;
+    }
+
+
     @Override
     public boolean contains(Object o) {
         if (o == null) {
@@ -409,35 +349,6 @@ public class SimpleRingQueue<E> extends AbstractQueue<E> implements BlockingQueu
     }
 
 
-    @Override
-    public int drainTo(Collection c) {
-        return drainTo(c, Integer.MAX_VALUE);
-    }
-
-    @Override
-    public int drainTo(Collection c, int maxElements) {
-        if (c == null) {
-            throw new NullPointerException();
-        }
-        if (c == this) {
-            throw new IllegalArgumentException();
-        }
-        if (maxElements <= 0) {
-            return 0;
-        }
-        boolean signalNotFull = false;
-        int n = Math.min(maxElements, count.get());
-        // count.get provides visibility to first n Nodes
-        E e;
-        int i = 0;
-
-        while ((e=remove())!=null) {
-
-            c.add(e);
-
-        }
-        return n;
-    }
 
 
     @Override
