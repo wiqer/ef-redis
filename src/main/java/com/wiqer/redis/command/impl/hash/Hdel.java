@@ -6,6 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisHash;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -39,7 +40,9 @@ public class Hdel implements WriteCommand
     {
         RedisHash redisHash = (RedisHash) redisCore.get(key);
         int       del       = redisHash.del(fields);
-        ctx.writeAndFlush(new RespInt(del));
+        RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+        i.getValue(del);
+        ctx.writeAndFlush(i);
     }
 
     @Override

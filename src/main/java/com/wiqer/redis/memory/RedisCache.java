@@ -1,7 +1,6 @@
 package com.wiqer.redis.memory;
 
 import com.wiqer.redis.datatype.RedisBaseData;
-import com.wiqer.redis.datatype.RedisData;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,12 +12,12 @@ import java.util.LinkedList;
  */
 public class RedisCache<T> {
     final static HashMap<Class<? extends RedisBaseData>, LinkedList<SimpleRingQueue<RedisBaseData>>> REDIS_CACHE = new HashMap<>();
-    final static HashMap<Class<? extends RedisBaseData>, HashMap<Class<?>[],Constructor<? extends RedisBaseData>>> CONSTRUCTOR_CACHE = new HashMap<>();
+    final static HashMap<Class<? extends RedisBaseData>, Constructor<?>> CONSTRUCTOR_CACHE = new HashMap<>();
 
-    public  <T extends RedisBaseData> T  getRedisDataByType(Class<T> clazz, Object... params) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public  <T extends RedisBaseData> T  getRedisDataByType(Class<T> clazz) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         LinkedList<SimpleRingQueue<RedisBaseData>> dataCacheLink =  REDIS_CACHE.get(clazz);
         if(dataCacheLink == null || dataCacheLink.isEmpty()){
-            return getNewRedisData(clazz,params);
+            return getNewRedisData(clazz);
         }
         for(SimpleRingQueue<RedisBaseData> queue : dataCacheLink){
             if(queue.isEmpty()){
@@ -26,8 +25,9 @@ public class RedisCache<T> {
             }
             return (T) queue.poll();
         }
-        return getNewRedisData(clazz,params);
+        return getNewRedisData(clazz);
     }
+
     public  <T extends RedisBaseData> void   addRedisDataToCache(T  t) {
         LinkedList<SimpleRingQueue<RedisBaseData>> dataCacheLink =  REDIS_CACHE.computeIfAbsent(t.getClass() , v -> new LinkedList<>());
         if(dataCacheLink.isEmpty()){
@@ -43,7 +43,6 @@ public class RedisCache<T> {
     /**
      * 单线程的理论上不用锁，别带入多线程思维看这段代码
      * @param clazz
-     * @param params
      * @param <T>
      * @return
      * @throws IllegalAccessException
@@ -51,18 +50,12 @@ public class RedisCache<T> {
      * @throws InstantiationException
      * @throws NoSuchMethodException
      */
-    public <T extends RedisBaseData> T  getNewRedisData(Class<T> clazz, Object... params) throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
-        Class<?>[] paramsTypes = new Class[params.length];
-        for(int i = 0; i < paramsTypes.length; i++){
-            paramsTypes[i] = params[i].getClass();
+    public <T extends RedisBaseData> T  getNewRedisData(Class<T> clazz) throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+        Constructor<T>  clsLoader = (Constructor<T>) CONSTRUCTOR_CACHE.get(clazz);
+        if (clsLoader == null) {
+            clsLoader = (Constructor<T>)clazz.getConstructor();
+            CONSTRUCTOR_CACHE.put(clazz, clsLoader) ;
         }
-
-        HashMap<Class<?>[],Constructor<? extends RedisBaseData>> clsLoaderMap =  CONSTRUCTOR_CACHE.computeIfAbsent(clazz, k ->  new HashMap<>());
-        Constructor<T> redisDataConstructor = (Constructor<T>) clsLoaderMap.get(paramsTypes);
-        if (redisDataConstructor == null){
-            redisDataConstructor = clazz.getConstructor(paramsTypes);
-            clsLoaderMap.put(paramsTypes, redisDataConstructor);
-        }
-        return redisDataConstructor.newInstance(params);
+        return clsLoader.newInstance();
     }
 }

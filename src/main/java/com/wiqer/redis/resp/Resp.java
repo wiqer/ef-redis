@@ -1,6 +1,7 @@
 package com.wiqer.redis.resp;
 
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
@@ -10,7 +11,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * @author Administrator
  */
-public interface Resp {
+public interface Resp extends RedisBaseData {
 
     static void write(Resp resp, ByteBuf buffer) {
         if (resp instanceof SimpleString) {
@@ -99,10 +100,13 @@ public interface Resp {
         if (c == RespType.STATUS.getCode()) {
             return new SimpleString(getString(buffer));
         } else if (c == RespType.ERROR.getCode()) {
-            return new Errors(getString(buffer));
+            Errors err = RedisBaseData.getRedisDataByType(Errors.class);
+            err.setContent(getString(buffer));
+            return err;
         } else if (c == RespType.INTEGER.getCode()) {
             int value = getNumber(buffer);
-            return new RespInt(value);
+            RespInt respInt =  RedisBaseData.getRedisDataByType(RespInt.class,value);
+            return respInt;
         } else if (c == RespType.BULK.getCode()) {
             int length = getNumber(buffer);
             if (buffer.readableBytes() < length + 2) {
@@ -118,14 +122,20 @@ public interface Resp {
             if (buffer.readByte() != RespType.R.getCode() || buffer.readByte() != RespType.N.getCode()) {
                 throw new IllegalStateException("没有读取到完整的命令");
             }
-            return new BulkString(new BytesWrapper(content));
+            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+            BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+            bytesWrapper.setByteArray(content);
+            bulkString.setContent(bytesWrapper);
+            return bulkString;
         } else if (c == RespType.MULTYBULK.getCode()) {
             int numOfElement = getNumber(buffer);
             Resp[] array = new Resp[numOfElement];
             for (int i = 0; i < numOfElement; i++) {
                 array[i] = decode(buffer);
             }
-            return new RespArray(array);
+            RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
+            arrays.setArray(array);
+            return arrays;
         } else {
             /**
              * A~Z

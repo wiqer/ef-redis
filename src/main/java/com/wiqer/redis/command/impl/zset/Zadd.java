@@ -6,6 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisZset;
 import com.wiqer.redis.resp.BulkString;
@@ -49,13 +50,17 @@ public class Zadd implements WriteCommand
             RedisZset redisZset = new RedisZset();
             int       add       = redisZset.add(keys);
             redisCore.put(key, redisZset);
-            ctx.writeAndFlush(new RespInt(add));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(add);
+            ctx.writeAndFlush(i);
         }
         else if (redisData instanceof RedisZset)
         {
             RedisZset redisZset = (RedisZset) redisData;
             int       add       = redisZset.add(keys);
-            ctx.writeAndFlush(new RespInt(add));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(add);
+            ctx.writeAndFlush(i);
         }
         else
         {

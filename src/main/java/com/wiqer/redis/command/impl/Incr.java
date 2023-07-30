@@ -4,6 +4,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisString;
 import com.wiqer.redis.resp.BulkString;
@@ -37,10 +38,12 @@ public class Incr implements WriteCommand
         if (redisData == null)
         {
             RedisString stringData = new RedisString();
-            BytesWrapper bytesWrapper=new BytesWrapper("0".getBytes(UTF_8));
+            BytesWrapper bytesWrapper=BytesWrapper.ZERO;
             stringData.setValue(bytesWrapper);
             redisCore.put(key, stringData);
-            ctx.writeAndFlush(new BulkString(bytesWrapper));
+            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+            bulkString.setContent(bytesWrapper);
+            ctx.writeAndFlush(bulkString);
         }
         else if (redisData instanceof RedisString)
         {
@@ -48,11 +51,16 @@ public class Incr implements WriteCommand
                 BytesWrapper value = ((RedisString) redisData).getValue();
                 long v= Format.parseLong(value.getByteArray(),10);
                 ++v;
-                BytesWrapper bytesWrapper= new BytesWrapper(Format.toByteArray(v));
+                BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+                bytesWrapper.setByteArray(Format.toByteArray(v));
                 ((RedisString) redisData).setValue(bytesWrapper);
-                ctx.writeAndFlush(new BulkString(bytesWrapper));
+                BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+                bulkString.setContent(bytesWrapper);
+                ctx.writeAndFlush(bulkString);
             }catch (NumberFormatException exception){
-                ctx.writeAndFlush(new SimpleString("value is not an integer or out of range"));
+                SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
+                vr.setContent("value is not an integer or out of range");
+                ctx.writeAndFlush(vr);
             }
 
         }
@@ -67,7 +75,7 @@ public class Incr implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisString stringData = new RedisString(new BytesWrapper("0".getBytes(UTF_8)));
+            RedisString stringData = new RedisString(BytesWrapper.ZERO);
             redisCore.put(key, stringData);
         }
         else if (redisData instanceof RedisString)
@@ -76,7 +84,9 @@ public class Incr implements WriteCommand
                 BytesWrapper value = ((RedisString) redisData).getValue();
                 long v= Format.parseLong(value.getByteArray(),10);
                 ++v;
-                ((RedisString) redisData).setValue(new BytesWrapper(Format.toByteArray(v)));
+                BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+                bytesWrapper.setByteArray(Format.toByteArray(v));
+                ((RedisString) redisData).setValue(bytesWrapper);
             }catch (NumberFormatException exception){
             }
         }

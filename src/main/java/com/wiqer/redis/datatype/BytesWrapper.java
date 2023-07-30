@@ -10,7 +10,12 @@ import java.util.Arrays;
 public class BytesWrapper implements Comparable<BytesWrapper>, RedisBaseData
 {
     static final Charset CHARSET = StandardCharsets.UTF_8;
+    public static final BytesWrapper ZERO = new BytesWrapper("0".getBytes(CHARSET));
+    public static final BytesWrapper ONE = new BytesWrapper("1".getBytes(CHARSET));
     private  byte[] content;
+
+    public BytesWrapper() {
+    }
 
     public BytesWrapper(byte[] content) {this.content = content;}
 
@@ -18,6 +23,9 @@ public class BytesWrapper implements Comparable<BytesWrapper>, RedisBaseData
     {
         return content;
     }
+
+    public void setByteArray(byte[] content) {this.content = content;}
+
     @Override
     public boolean equals(Object o)
     {

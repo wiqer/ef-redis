@@ -5,8 +5,10 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
+import com.wiqer.redis.util.Format;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.lang.management.ManagementFactory;
@@ -36,7 +38,11 @@ public class Info implements Command
         list.add("process_id:" + getPid());
         Optional<String> reduce = list.stream().map(name -> name + "\r\n").reduce((first, second) -> first + second);
         String           s      = reduce.get();
-        ctx.writeAndFlush(new BulkString(new BytesWrapper(s.getBytes(CHARSET))));
+        BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+        BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+        bytesWrapper.setByteArray(s.getBytes(CHARSET));
+        bulkString.setContent(bytesWrapper);
+        ctx.writeAndFlush(bulkString);
     }
 
     private String getPid()

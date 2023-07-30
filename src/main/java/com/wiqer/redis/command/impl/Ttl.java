@@ -6,6 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -34,16 +35,22 @@ public class Ttl implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            ctx.writeAndFlush(new RespInt(-2));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(-2);
+            ctx.writeAndFlush(i);
         }
         else if (redisData.timeout() == -1)
         {
-            ctx.writeAndFlush(new RespInt(-1));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(-1);
+            ctx.writeAndFlush(i);
         }
         else
         {
             long second = (redisData.timeout() - System.currentTimeMillis()) / 1000;
-            ctx.writeAndFlush(new RespInt((int) second));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue((int) second);
+            ctx.writeAndFlush(i);
         }
     }
 

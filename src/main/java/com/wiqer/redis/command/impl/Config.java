@@ -5,6 +5,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
@@ -44,10 +45,17 @@ public class Config implements Command
         if (param.equals("*") || param.equals("databases"))
         {
             List<BulkString> list = new ArrayList<>();
-            list.add(new BulkString(new BytesWrapper("databases".getBytes(CHARSET))));
-            list.add(new BulkString(new BytesWrapper("1".getBytes(CHARSET))));
+            BulkString bulkString0 =  RedisBaseData.getRedisDataByType(BulkString.class);
+            BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+            bytesWrapper.setByteArray("databases".getBytes(CHARSET));
+            bulkString0.setContent(bytesWrapper);
+            list.add(bulkString0);
+            BulkString bulkString1 =  RedisBaseData.getRedisDataByType(BulkString.class);
+            bulkString1.setContent(BytesWrapper.ONE);
+            list.add(bulkString1);
             Resp[]    array  = list.toArray(new Resp[list.size()]);
-            RespArray arrays = new RespArray(array);
+            RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
+            arrays.setArray(array);
             ctx.writeAndFlush(arrays);
         }
         else

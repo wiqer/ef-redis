@@ -6,9 +6,11 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
+import com.wiqer.redis.resp.SimpleString;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.List;
@@ -35,7 +37,9 @@ public class Del implements WriteCommand
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         long remove = redisCore.remove(keys);
-        ctx.writeAndFlush(new RespInt((int) remove));
+        RespInt ri = RedisBaseData.getRedisDataByType(RespInt.class);
+        ri.getValue((int) remove);
+        ctx.writeAndFlush(ri);
     }
 
     @Override

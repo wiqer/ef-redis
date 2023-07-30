@@ -6,6 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisString;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -78,7 +79,7 @@ public class Set implements WriteCommand
             stringData.setValue(value);
             stringData.setTimeout(timeout);
             redisCore.put(key, stringData);
-            ctx.writeAndFlush(new SimpleString("OK"));
+            ctx.writeAndFlush(SimpleString.OK);
         }
     }
 

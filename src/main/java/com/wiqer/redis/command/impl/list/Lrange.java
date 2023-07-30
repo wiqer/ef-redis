@@ -5,6 +5,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisList;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -39,7 +40,11 @@ public class Lrange implements Command
     {
         RedisList          redisList = (RedisList) redisCore.get(key);
         List<BytesWrapper> lrang     = redisList.lrang(start, end);
-        RespArray          respArray = new RespArray(lrang.stream().map(BulkString::new).toArray(Resp[]::new));
+        RespArray          respArray = new RespArray(lrang.stream().map(bytesWrapper -> {
+            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+            bulkString.setContent(bytesWrapper);
+            return bulkString;
+        }).toArray(Resp[]::new));
         ctx.writeAndFlush(respArray);
     }
 }

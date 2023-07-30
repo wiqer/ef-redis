@@ -4,6 +4,7 @@ import com.wiqer.redis.aof.Aof;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandFactory;
 import com.wiqer.redis.command.WriteCommand;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.resp.*;
 import com.wiqer.redis.util.PropertiesUtil;
 import com.wiqer.redis.util.TRACEID;
@@ -56,8 +57,10 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
                 }
                 if (command == null)
                 {
+                    Errors err = RedisBaseData.getRedisDataByType(Errors.class);
+                    err.setContent("unsupport command:" + ((BulkString) ((RespArray) resp).getArray()[0]).getContent().toUtf8String());
                     //取出命令
-                    ctx.writeAndFlush(new Errors("unsupport command:" + ((BulkString) ((RespArray) resp).getArray()[0]).getContent().toUtf8String()));
+                    ctx.writeAndFlush(err);
                 }
                 else
                 {

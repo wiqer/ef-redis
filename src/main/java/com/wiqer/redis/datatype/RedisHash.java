@@ -13,6 +13,9 @@ public class RedisHash implements RedisData
     private       long                            timeout = -1;
     private  Map<BytesWrapper, BytesWrapper> map     = new HashMap<>();
 
+    public RedisHash() {
+    }
+
     @Override
     public long timeout()
     {

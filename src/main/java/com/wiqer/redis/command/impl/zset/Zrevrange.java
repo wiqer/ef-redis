@@ -5,6 +5,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisZset;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -41,10 +42,18 @@ public class Zrevrange implements Command
         List<RedisZset.ZsetKey> keys      = redisZset.reRange(start, end);
         Resp[] resps = keys.stream().flatMap(key -> {
             Resp[] info = new Resp[2];
-            info[0] = new BulkString(key.getKey());
-            info[1] = new BulkString(new BytesWrapper(String.valueOf(key.getScore()).getBytes(CHARSET)));
+            BulkString bulkString0 =  RedisBaseData.getRedisDataByType(BulkString.class);
+            bulkString0.setContent(key.getKey());
+            info[0] = bulkString0;
+            BulkString bulkString1 =  RedisBaseData.getRedisDataByType(BulkString.class);
+            BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+            bytesWrapper.setByteArray(String.valueOf(key.getScore()).getBytes(CHARSET));
+            bulkString1.setContent(bytesWrapper);
+            info[1] = bulkString1;
             return Stream.of(info);
         }).toArray(Resp[]::new);
-        ctx.writeAndFlush(new RespArray(resps));
+        RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
+        arrays.setArray(resps);
+        ctx.writeAndFlush(arrays);
     }
 }

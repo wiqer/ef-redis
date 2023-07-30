@@ -5,6 +5,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisString;
 import com.wiqer.redis.resp.BulkString;
@@ -38,7 +39,9 @@ public class Get implements Command
         else if (redisData instanceof RedisString)
         {
             BytesWrapper value = ((RedisString) redisData).getValue();
-            ctx.writeAndFlush(new BulkString(value));
+            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+            bulkString.setContent(value);
+            ctx.writeAndFlush(bulkString);
         }
         else
         {

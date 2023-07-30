@@ -14,6 +14,9 @@ public class RedisSet implements RedisData
 
     private Set<BytesWrapper> set = new HashSet<>();
 
+    public RedisSet() {
+    }
+
     @Override
     public long timeout()
     {

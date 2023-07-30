@@ -4,6 +4,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisList;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -28,7 +29,9 @@ public class Ping implements Command
     @Override
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
-        ctx.write(new SimpleString("PONG"));
+        SimpleString pong =  RedisBaseData.getRedisDataByType(SimpleString.class);
+        pong.setContent("PONG");
+        ctx.write(pong);
         ctx.flush();
     }
 }

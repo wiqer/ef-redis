@@ -4,13 +4,8 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.WriteCommand;
-import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisData;
-import com.wiqer.redis.datatype.RedisList;
-import com.wiqer.redis.resp.BulkString;
-import com.wiqer.redis.resp.Errors;
-import com.wiqer.redis.resp.Resp;
-import com.wiqer.redis.resp.RespInt;
+import com.wiqer.redis.datatype.*;
+import com.wiqer.redis.resp.*;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.ArrayList;
@@ -45,20 +40,26 @@ public abstract class Push implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisList redisList = new RedisList();
+            RedisList redisList =  RedisBaseData.getRedisDataByType(RedisList.class);
             biConsumer.accept(redisList, value);
             redisCore.put(key, redisList);
-            ctx.writeAndFlush(new RespInt(redisList.size()));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(redisList.size());
+            ctx.writeAndFlush(i);
         }
         else if (!(redisData instanceof RedisList))
         {
-            ctx.writeAndFlush(new Errors("wrong type"));
+            Errors err = RedisBaseData.getRedisDataByType(Errors.class);
+            err.setContent("wrong type");
+            ctx.writeAndFlush(err);
         }
         else
         {
             biConsumer.accept((RedisList) redisData, value);
             redisCore.put(key, redisData);
-            ctx.writeAndFlush(new RespInt(((RedisList) redisData).size()));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(((RedisList) redisData).size());
+            ctx.writeAndFlush(i);
         }
     }
     @Override
@@ -67,7 +68,7 @@ public abstract class Push implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisList redisList = new RedisList();
+            RedisList redisList =  RedisBaseData.getRedisDataByType(RedisList.class);
             biConsumer.accept(redisList, value);
             redisCore.put(key, redisList);
 

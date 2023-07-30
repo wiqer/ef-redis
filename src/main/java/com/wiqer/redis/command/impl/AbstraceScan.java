@@ -4,9 +4,8 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.resp.BulkString;
-import com.wiqer.redis.resp.Resp;
-import com.wiqer.redis.resp.RespArray;
+import com.wiqer.redis.datatype.RedisBaseData;
+import com.wiqer.redis.resp.*;
 import io.netty.channel.ChannelHandlerContext;
 
 public abstract class AbstraceScan implements Command
@@ -16,10 +15,13 @@ public abstract class AbstraceScan implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         Resp[]     array       = new Resp[2];
-        BulkString blukStrings = new BulkString(new BytesWrapper("0".getBytes(CHARSET)));
-        array[0] = blukStrings;
+        BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+        bulkString.setContent(BytesWrapper.ZERO);
+        array[0] = bulkString;
         array[1] = get(redisCore);
-        ctx.writeAndFlush(new RespArray(array));
+        RespArray i = RedisBaseData.getRedisDataByType(RespArray.class);
+        i.setArray(array);
+        ctx.writeAndFlush(i);
     }
 
     protected abstract RespArray get(RedisCore redisCore);

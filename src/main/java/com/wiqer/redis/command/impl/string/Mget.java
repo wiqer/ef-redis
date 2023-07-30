@@ -4,6 +4,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisString;
 import com.wiqer.redis.resp.BulkString;
@@ -51,8 +52,13 @@ public class Mget implements Command
                 throw new UnsupportedOperationException();
             }
         });
-        RespArray respArray = new RespArray(linkedList.stream().map(BulkString::new).toArray(Resp[]::new));
-        ctx.writeAndFlush(respArray);
+        RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
+        arrays.setArray(linkedList.stream().map(bytesWrapper -> {
+            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
+            bulkString.setContent(bytesWrapper);
+            return  bulkString;
+        }).toArray(Resp[]::new));
+        ctx.writeAndFlush(arrays);
     }
 
 }

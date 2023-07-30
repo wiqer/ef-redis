@@ -32,27 +32,39 @@ public class Type implements Command
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            ctx.writeAndFlush(new SimpleString("none"));
+            SimpleString none =  RedisBaseData.getRedisDataByType(SimpleString.class);
+            none.setContent("none");
+            ctx.writeAndFlush(none);
         }
         else if (redisData instanceof RedisString)
         {
-            ctx.writeAndFlush(new SimpleString("string"));
+            SimpleString string =  RedisBaseData.getRedisDataByType(SimpleString.class);
+            string.setContent("string");
+            ctx.writeAndFlush(string);
         }
         else if (redisData instanceof RedisList)
         {
-            ctx.writeAndFlush(new SimpleString("list"));
+            SimpleString list =  RedisBaseData.getRedisDataByType(SimpleString.class);
+            list.setContent("list");
+            ctx.writeAndFlush(list);
         }
         else if (redisData instanceof RedisSet)
         {
-            ctx.writeAndFlush(new SimpleString("set"));
+            SimpleString set =  RedisBaseData.getRedisDataByType(SimpleString.class);
+            set.setContent("set");
+            ctx.writeAndFlush(set);
         }
         else if (redisData instanceof RedisHash)
         {
-            ctx.writeAndFlush(new SimpleString("hash"));
+            SimpleString hash =  RedisBaseData.getRedisDataByType(SimpleString.class);
+            hash.setContent("hash");
+            ctx.writeAndFlush(hash);
         }
         else if (redisData instanceof RedisZset)
         {
-            ctx.writeAndFlush(new SimpleString("zset"));
+            SimpleString zset =  RedisBaseData.getRedisDataByType(SimpleString.class);
+            zset.setContent("zset");
+            ctx.writeAndFlush(zset);
         }
         else
         {

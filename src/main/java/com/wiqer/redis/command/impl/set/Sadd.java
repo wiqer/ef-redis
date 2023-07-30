@@ -6,6 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
+import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisSet;
 import com.wiqer.redis.resp.BulkString;
@@ -41,16 +42,20 @@ public class Sadd implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisSet redisSet = new RedisSet();
+            RedisSet redisSet =  RedisBaseData.getRedisDataByType(RedisSet.class);
             int      sadd     = redisSet.sadd(member);
             redisCore.put(key, redisSet);
-            ctx.writeAndFlush(new RespInt(sadd));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(sadd);
+            ctx.writeAndFlush(i);
         }
         else if (redisData instanceof RedisSet)
         {
             RedisSet redisSet = (RedisSet) redisData;
             int      sadd     = redisSet.sadd(member);
-            ctx.writeAndFlush(new RespInt(sadd));
+            RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
+            i.getValue(sadd);
+            ctx.writeAndFlush(i);
         }
         else
         {
@@ -63,7 +68,7 @@ public class Sadd implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisSet redisSet = new RedisSet();
+            RedisSet redisSet =  RedisBaseData.getRedisDataByType(RedisSet.class);
             redisSet.sadd(member);
             redisCore.put(key, redisSet);
         }
