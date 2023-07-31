@@ -3,7 +3,7 @@ package com.wiqer.redis.datatype;
 /**
  * @author lilan
  */
-public interface RedisData extends RedisBaseData
+public interface RedisData
 {
     long timeout();
 

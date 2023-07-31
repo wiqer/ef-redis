@@ -47,7 +47,7 @@ public abstract class Push implements WriteCommand
             i.getValue(redisList.size());
             ctx.writeAndFlush(i);
         }
-        else if (!(redisData instanceof RedisList))
+        else if (redisData != null && !(redisData instanceof RedisList))
         {
             Errors err = RedisBaseData.getRedisDataByType(Errors.class);
             err.setContent("wrong type");

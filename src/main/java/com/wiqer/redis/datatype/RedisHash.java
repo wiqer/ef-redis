@@ -11,7 +11,7 @@ import java.util.Map;
 public class RedisHash implements RedisData
 {
     private       long                            timeout = -1;
-    private  Map<BytesWrapper, BytesWrapper> map     = new HashMap<>();
+    private final Map<BytesWrapper, BytesWrapper> map     = new HashMap<>();
 
     public RedisHash() {
     }
@@ -40,13 +40,6 @@ public class RedisHash implements RedisData
 
     public int del(List<BytesWrapper> fields)
     {
-        return (int) fields.stream().peek(BytesWrapper::recovery).filter(key -> map.remove(key) != null).count();
+        return (int) fields.stream().filter(key -> map.remove(key) != null).count();
     }
-
-    @Override
-    public void clear() {
-        map  = new HashMap<>();
-        timeout = -1;
-    }
-
 }
