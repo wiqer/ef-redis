@@ -1,5 +1,6 @@
 package com.wiqer.redis.command.impl;
 
+import com.wiqer.redis.CommandDecoder;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
@@ -12,11 +13,14 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.SimpleString;
 import com.wiqer.redis.util.Format;
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.log4j.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Incr implements WriteCommand
 {
+    private static final Logger LOGGER = Logger.getLogger(Incr.class);
+
     private BytesWrapper key;
 
     @Override
@@ -66,6 +70,7 @@ public class Incr implements WriteCommand
 
             }catch (NumberFormatException exception){
                 SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
+                LOGGER.info(exception.getMessage(),exception);
                 vr.setContent("value is not an integer or out of range");
                 ctx.writeAndFlush(vr).addListener(future -> {
                     vr.recovery();

@@ -14,18 +14,14 @@ public interface RedisBaseData
     void clear();
 
     default void recovery() {
-        try{
-            clear();
-            REDIS_CACHE.addRedisDataToCache(this);
-        }catch (Exception e){
-            System.out.println(e);
-            throw new UnsupportedOperationException();
-        }
+        REDIS_CACHE.addRedisDataToCache(this);
     }
 
     static <T extends RedisBaseData> T  getRedisDataByType(Class<T> clazz, Object... params){
         try {
-            return REDIS_CACHE.getRedisDataByType(clazz);
+            final T redisBaseData = REDIS_CACHE.getRedisDataByType(clazz);
+            redisBaseData.clear();
+            return  redisBaseData;
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
@@ -34,7 +30,7 @@ public interface RedisBaseData
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-        }catch (Exception e) {
+        }catch (Throwable e) {
             System.out.println(e);
             throw new UnsupportedOperationException();
         }
