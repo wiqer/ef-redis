@@ -56,10 +56,9 @@ public class Zrevrange implements Command
         }).toArray(Resp[]::new);
         RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
         arrays.setArray(resps);
-        ctx.writeAndFlush(arrays).addListener(future -> {
-            Arrays.stream(resps).forEach(Resp::recovery);
-            arrays.recovery();
-        });
+        ctx.writeAndFlush(arrays);
+        Arrays.stream(resps).forEach(Resp::recovery);
+        arrays.recovery();
 
     }
 }

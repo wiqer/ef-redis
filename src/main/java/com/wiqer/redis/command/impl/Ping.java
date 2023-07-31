@@ -33,7 +33,7 @@ public class Ping implements Command
     {
         SimpleString pong =  RedisBaseData.getRedisDataByType(SimpleString.class);
         pong.setContent("PONG");
-        ctx.writeAndFlush(pong).addListener(future -> {pong.recovery();});
-
+        ctx.writeAndFlush(pong);
+        pong.recovery();
     }
 }

@@ -11,7 +11,9 @@ public interface RedisBaseData
 {
     RedisCache<RedisBaseData> REDIS_CACHE = new RedisCache<>();
 
-    void clear();
+    default void clear() {
+
+    }
 
     default void recovery() {
         REDIS_CACHE.addRedisDataToCache(this);

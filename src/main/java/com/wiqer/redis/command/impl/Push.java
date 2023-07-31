@@ -45,17 +45,17 @@ public abstract class Push implements WriteCommand
             redisCore.put(key, redisList);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(redisList.size());
-            ctx.writeAndFlush(i).addListener(future -> {
-                key.recovery();
-                value.forEach(BytesWrapper::recovery);
-                i.recovery();
-            });
+            ctx.writeAndFlush(i);
+            key.recovery();
+            value.forEach(BytesWrapper::recovery);
+            i.recovery();
         }
         else if (!(redisData instanceof RedisList))
         {
             Errors err = RedisBaseData.getRedisDataByType(Errors.class);
             err.setContent("wrong type");
-            ctx.writeAndFlush(err).addListener(future -> err.recovery());;
+            ctx.writeAndFlush(err);
+            err.recovery();
         }
         else
         {
@@ -63,11 +63,10 @@ public abstract class Push implements WriteCommand
             redisCore.put(key, redisData);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(((RedisList) redisData).size());
-            ctx.writeAndFlush(i).addListener(future -> {
-                key.recovery();
-                value.forEach(BytesWrapper::recovery);
-                i.recovery();
-            });
+            ctx.writeAndFlush(i);
+            key.recovery();
+            value.forEach(BytesWrapper::recovery);
+            i.recovery();
         }
 
     }

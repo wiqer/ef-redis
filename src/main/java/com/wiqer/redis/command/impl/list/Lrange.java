@@ -46,10 +46,9 @@ public class Lrange implements Command
             bulkString.setContent(bytesWrapper);
             return bulkString;
         }).toArray(Resp[]::new));
-        ctx.writeAndFlush(respArray).addListener(future -> {
-            key.recovery();
-            Arrays.stream(respArray.getArray()).forEach(Resp::recovery);
-            respArray.recovery();
-        });
+        ctx.writeAndFlush(respArray);
+        key.recovery();
+        Arrays.stream(respArray.getArray()).forEach(Resp::recovery);
+        respArray.recovery();
     }
 }

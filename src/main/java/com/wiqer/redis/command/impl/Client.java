@@ -46,8 +46,7 @@ public class Client implements Command
             default:
                 throw new IllegalArgumentException();
         }
-        ctx.writeAndFlush(SimpleString.OK).addListener(future -> Arrays.stream(array).forEach(Resp::recovery));
-
-
+        ctx.writeAndFlush(SimpleString.OK);
+        Arrays.stream(array).forEach(Resp::recovery);
     }
 }

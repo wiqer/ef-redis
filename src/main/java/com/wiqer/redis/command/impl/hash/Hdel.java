@@ -42,11 +42,10 @@ public class Hdel implements WriteCommand
         int       del       = redisHash.del(fields);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
         i.getValue(del);
-        ctx.writeAndFlush(i).addListener(future -> {
-            key.recovery();
-            fields.forEach(BytesWrapper::recovery);
-            i.recovery();
-        });
+        ctx.writeAndFlush(i);
+        key.recovery();
+        fields.forEach(BytesWrapper::recovery);
+        i.recovery();
     }
 
     @Override

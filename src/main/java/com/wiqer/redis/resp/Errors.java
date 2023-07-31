@@ -22,6 +22,6 @@ public class Errors implements Resp
     }
     @Override
     public void clear() {
-        content = null;
+
     }
 }

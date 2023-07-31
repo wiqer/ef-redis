@@ -45,9 +45,8 @@ public class Hset implements WriteCommand
             redisCore.put(key, redisHash);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(put);
-            ctx.writeAndFlush(i).addListener(future -> {
-                i.recovery();
-            });
+            ctx.writeAndFlush(i);
+            i.recovery();
         }
         else if (redisData instanceof RedisHash)
         {
@@ -55,9 +54,8 @@ public class Hset implements WriteCommand
             int       put       = redisHash.put(field, value);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(put);
-            ctx.writeAndFlush(i).addListener(future -> {
-                i.recovery();
-            });
+            ctx.writeAndFlush(i);
+            i.recovery();
         }
         else
         {

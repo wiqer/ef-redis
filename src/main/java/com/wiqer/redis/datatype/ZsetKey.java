@@ -48,7 +48,5 @@ public class ZsetKey implements RedisBaseData
 
     @Override
     public void clear() {
-        key = null;
-        score = -1;
     }
 }

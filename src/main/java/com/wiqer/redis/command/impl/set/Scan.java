@@ -44,10 +44,9 @@ public class Scan implements Command
         array[1] = arrays1;
         RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
         arrays.setArray(array);
-        ctx.writeAndFlush(arrays).addListener(future -> {
-            bulkString.recovery();
-            collect.forEach(BulkString::recovery);
-            arrays1.recovery();
-        });
+        ctx.writeAndFlush(arrays);
+        bulkString.recovery();
+        collect.forEach(BulkString::recovery);
+        arrays1.recovery();
     }
 }

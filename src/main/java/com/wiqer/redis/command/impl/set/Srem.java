@@ -44,11 +44,10 @@ public class Srem implements WriteCommand
         int      srem     = redisSet.srem(members);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
         i.getValue(srem);
-        ctx.writeAndFlush(i).addListener(future -> {
-            members.forEach(BytesWrapper::recovery);
-            key.recovery();
-            i.recovery();
-        });
+        ctx.writeAndFlush(i);
+        members.forEach(BytesWrapper::recovery);
+        key.recovery();
+        i.recovery();
 
     }
 

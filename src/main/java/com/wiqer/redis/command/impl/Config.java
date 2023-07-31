@@ -56,12 +56,11 @@ public class Config implements Command
             Resp[]    array  = list.toArray(new Resp[list.size()]);
             RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
             arrays.setArray(array);
-            ctx.writeAndFlush(arrays).addListener(future -> {
-                bytesWrapper.recovery();
-                bulkString0.recovery();
-                bulkString1.recovery();
-                arrays.recovery();
-            });
+            ctx.writeAndFlush(arrays);
+            bytesWrapper.recovery();
+            bulkString0.recovery();
+            bulkString1.recovery();
+            arrays.recovery();
         }
         else
         {

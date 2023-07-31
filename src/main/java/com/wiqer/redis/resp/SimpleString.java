@@ -23,8 +23,4 @@ public class SimpleString implements Resp
     {
         this.content = content;
     }
-    @Override
-    public void clear() {
-        content = null;
-    }
 }

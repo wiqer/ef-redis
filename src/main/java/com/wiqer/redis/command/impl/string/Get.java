@@ -44,10 +44,9 @@ public class Get implements Command
             BytesWrapper value = ((RedisString) redisData).getValue();
             BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
             bulkString.setContent(value);
-            ctx.writeAndFlush(bulkString).addListener(future -> {
-                key.recovery();
-                bulkString.recovery();
-            });
+            ctx.writeAndFlush(bulkString);
+            key.recovery();
+            bulkString.recovery();
 
         }
         else

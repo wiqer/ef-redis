@@ -18,8 +18,4 @@ public class RespInt implements Resp
     {
         this.value = value;
     }
-    @Override
-    public void clear() {
-        value = -1;
-    }
 }

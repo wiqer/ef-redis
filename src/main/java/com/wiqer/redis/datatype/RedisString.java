@@ -43,7 +43,6 @@ public class RedisString implements RedisData
 
     @Override
     public void clear() {
-        this.value = null;
         this.timeout = -1;
     }
 

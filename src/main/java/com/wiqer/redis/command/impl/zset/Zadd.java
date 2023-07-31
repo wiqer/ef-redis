@@ -49,7 +49,8 @@ public class Zadd implements WriteCommand
             redisCore.put(key, redisZset);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(add);
-            ctx.writeAndFlush(i).addListener(future -> i.recovery());
+            ctx.writeAndFlush(i);
+            i.recovery();
 
         }
         else if (redisData instanceof RedisZset)
@@ -58,7 +59,8 @@ public class Zadd implements WriteCommand
             int       add       = redisZset.add(keys);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(add);
-            ctx.writeAndFlush(i).addListener(future -> i.recovery());
+            ctx.writeAndFlush(i);
+            i.recovery();
         }
         else
         {

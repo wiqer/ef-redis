@@ -27,9 +27,4 @@ public class BulkString implements Resp
     {
         this.content = content;
     }
-
-    @Override
-    public void clear() {
-        content = null;
-    }
 }

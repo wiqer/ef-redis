@@ -38,11 +38,10 @@ public class Lrem implements WriteCommand
         int       remove    = redisList.remove(value);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
         i.getValue(remove);
-        ctx.writeAndFlush(i).addListener(future -> {
-            key.recovery();
-            value.recovery();
-            i.recovery();
-        });
+        ctx.writeAndFlush(i);
+        key.recovery();
+        value.recovery();
+        i.recovery();
     }
 
     @Override

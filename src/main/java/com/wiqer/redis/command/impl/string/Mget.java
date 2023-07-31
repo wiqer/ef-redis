@@ -59,11 +59,10 @@ public class Mget implements Command
             bulkString.setContent(bytesWrapper);
             return  bulkString;
         }).toArray(Resp[]::new));
-        ctx.writeAndFlush(arrays).addListener(future -> {
-            keys.forEach(BytesWrapper::recovery);
-            Arrays.stream(arrays.getArray()).forEach(Resp::recovery);
-            arrays.recovery();
-        });
+        ctx.writeAndFlush(arrays);
+        keys.forEach(BytesWrapper::recovery);
+        Arrays.stream(arrays.getArray()).forEach(Resp::recovery);
+        arrays.recovery();
     }
 
 }

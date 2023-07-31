@@ -21,9 +21,4 @@ public class RespArray implements Resp
     {
         this.array = array;
     }
-
-    @Override
-    public void clear() {
-        array = null;
-    }
 }

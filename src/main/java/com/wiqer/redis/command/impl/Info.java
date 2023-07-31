@@ -43,10 +43,9 @@ public class Info implements Command
         BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
         bytesWrapper.setByteArray(s.getBytes(CHARSET));
         bulkString.setContent(bytesWrapper);
-        ctx.writeAndFlush(bulkString).addListener(future -> {
-            bulkString.recovery();
-            bytesWrapper.recovery();
-        });
+        ctx.writeAndFlush(bulkString);
+        bulkString.recovery();
+        bytesWrapper.recovery();
 
     }
 

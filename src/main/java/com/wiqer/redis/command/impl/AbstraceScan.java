@@ -24,13 +24,12 @@ public abstract class AbstraceScan implements Command
         final BytesWrapper key = getKey(redisCore);
         final RespArray i = RedisBaseData.getRedisDataByType(RespArray.class);
         i.setArray(array);
-        ctx.writeAndFlush(i).addListener(future -> {
-            i.recovery();
-            key.recovery();
-            Arrays.stream(((RespArray)array[1]).getArray()).forEach(Resp::recovery);
-            array[1].recovery();
-            array[0].recovery();
-        });
+        ctx.writeAndFlush(i);
+        i.recovery();
+        key.recovery();
+        Arrays.stream(((RespArray)array[1]).getArray()).forEach(Resp::recovery);
+        array[1].recovery();
+        array[0].recovery();
 
     }
 

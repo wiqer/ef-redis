@@ -43,9 +43,9 @@ public class Decr implements WriteCommand
             redisCore.put(key, stringData);
             BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
             bulkString.setContent(bytesWrapper);
-            ctx.writeAndFlush(bulkString).addListener(future -> {
-                bulkString.recovery();
-            });
+            ctx.writeAndFlush(bulkString);
+            bulkString.recovery();
+
         }
         else if (redisData instanceof RedisString)
         {
@@ -60,21 +60,19 @@ public class Decr implements WriteCommand
                 ((RedisString) redisData).setValue(bytesWrapper);
                 BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
                 bulkString.setContent(bytesWrapper);
-                ctx.writeAndFlush(bulkString).addListener(future -> {
-                    key.recovery();
-                    bulkString.recovery();
-                    //回收老的实例化对象
-                    ((RedisString) redisData).getValue().recovery();
-                });
+                ctx.writeAndFlush(bulkString);
+                key.recovery();
+                bulkString.recovery();
+                //回收老的实例化对象
+                ((RedisString) redisData).getValue().recovery();
 
 
             }catch (NumberFormatException exception){
                 SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
                 vr.setContent("value is not an integer or out of range");
-                ctx.writeAndFlush(vr).addListener(future -> {
-                    key.recovery();
-                    vr.recovery();
-                });
+                ctx.writeAndFlush(vr);
+                key.recovery();
+                vr.recovery();
             }
 
         }

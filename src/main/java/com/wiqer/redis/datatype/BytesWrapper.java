@@ -75,7 +75,6 @@ public class BytesWrapper implements Comparable<BytesWrapper>, RedisBaseData
 
     @Override
     public void clear() {
-        content = null;
     }
 
 }

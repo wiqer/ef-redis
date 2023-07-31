@@ -62,20 +62,18 @@ public class Incr implements WriteCommand
                 ((RedisString) redisData).setValue(newBytesWrapper);
                 BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
                 bulkString.setContent(newBytesWrapper);
-                ctx.writeAndFlush(bulkString).addListener(future -> {
-                    bulkString.recovery();
-                    key.recovery();
-                    value.recovery();
-                });
+                ctx.writeAndFlush(bulkString);
+                bulkString.recovery();
+                key.recovery();
+                value.recovery();
 
             }catch (NumberFormatException exception){
                 SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
                 LOGGER.info(exception.getMessage(),exception);
                 vr.setContent("value is not an integer or out of range");
-                ctx.writeAndFlush(vr).addListener(future -> {
-                    vr.recovery();
-                    key.recovery();
-                });
+                ctx.writeAndFlush(vr);
+                vr.recovery();
+                key.recovery();
             }
 
         }

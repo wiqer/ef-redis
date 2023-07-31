@@ -43,11 +43,10 @@ public class Zrem implements WriteCommand
         int       remove    = redisZset.remove(members);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
         i.getValue(remove);
-        ctx.writeAndFlush(i).addListener(future -> {
-            members.forEach(BytesWrapper::recovery);
-            key.recovery();
-            i.recovery();
-        });
+        ctx.writeAndFlush(i);
+        members.forEach(BytesWrapper::recovery);
+        key.recovery();
+        i.recovery();
 
     }
 

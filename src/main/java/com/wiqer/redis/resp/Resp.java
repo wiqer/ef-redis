@@ -14,6 +14,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public interface Resp extends RedisBaseData {
 
     static void write(Resp resp, ByteBuf buffer) {
+
         if (resp instanceof SimpleString) {
             buffer.writeByte(RespType.STATUS.getCode());
             String content = ((SimpleString) resp).getContent();
@@ -92,7 +93,7 @@ public interface Resp extends RedisBaseData {
      * @return
      */
     static Resp decode(ByteBuf buffer) {
-        // System.out.println(new String(buffer.array(),UTF_8));
+
         if (buffer.readableBytes() <= 0) {
             throw new IllegalStateException("没有读取到完整的命令");
         }
