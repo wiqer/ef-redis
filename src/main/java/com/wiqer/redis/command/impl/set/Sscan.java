@@ -4,7 +4,6 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.impl.AbstraceScan;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisSet;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -33,13 +32,7 @@ public class Sscan extends AbstraceScan
     protected RespArray get(RedisCore redisCore)
     {
         RedisSet         redisSet = (RedisSet) redisCore.get(key);
-        List<BulkString> collect  = redisSet.keys().stream().map(keyName -> {
-            BulkString bulkStringSub =  RedisBaseData.getRedisDataByType(BulkString.class);
-            bulkStringSub.setContent(keyName);
-            return bulkStringSub;
-        }).collect(Collectors.toList());
-        RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
-        arrays.setArray(collect.toArray(new Resp[collect.size()]));
-        return arrays;
+        List<BulkString> collect  = redisSet.keys().stream().map(keyName -> new BulkString(keyName)).collect(Collectors.toList());
+        return new RespArray(collect.toArray(new Resp[collect.size()]));
     }
 }

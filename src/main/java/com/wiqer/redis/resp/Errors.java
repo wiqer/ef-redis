@@ -4,9 +4,6 @@ public class Errors implements Resp
 {
     String content;
 
-    public Errors() {
-    }
-
     public Errors(String content)
     {
         this.content = content;
@@ -15,13 +12,5 @@ public class Errors implements Resp
     public String getContent()
     {
         return content;
-    }
-    public void setContent(String content)
-    {
-        this.content = content;
-    }
-    @Override
-    public void clear() {
-        content = null;
     }
 }

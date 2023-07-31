@@ -6,7 +6,6 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisZset;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -40,9 +39,7 @@ public class Zrem implements WriteCommand
     {
         RedisZset redisZset = (RedisZset) redisCore.get(key);
         int       remove    = redisZset.remove(members);
-        RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-        i.getValue(remove);
-        ctx.writeAndFlush(i);
+        ctx.writeAndFlush(new RespInt(remove));
     }
 
     @Override

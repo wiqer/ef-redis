@@ -4,7 +4,6 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.impl.AbstraceScan;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisHash;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -38,12 +37,8 @@ public class Hscan extends AbstraceScan
         Map<BytesWrapper, BytesWrapper> map       = redisHash.getMap();
         return new RespArray(map.entrySet().stream().flatMap(entry -> {
             Resp[] resps = new Resp[2];
-            BulkString bulkString0 =  RedisBaseData.getRedisDataByType(BulkString.class);
-            bulkString0.setContent(entry.getKey());
-            resps[0] = bulkString0;
-            BulkString bulkString1 =  RedisBaseData.getRedisDataByType(BulkString.class);
-            bulkString1.setContent(entry.getValue());
-            resps[1] = bulkString1;
+            resps[0] = new BulkString(entry.getKey());
+            resps[1] = new BulkString(entry.getValue());
             return Stream.of(resps);
         }).toArray(Resp[]::new));
     }

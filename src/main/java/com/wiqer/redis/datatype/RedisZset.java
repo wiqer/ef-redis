@@ -24,9 +24,6 @@ public class RedisZset implements RedisData
         }
     });
 
-    public RedisZset() {
-    }
-
     @Override
     public long timeout()
     {

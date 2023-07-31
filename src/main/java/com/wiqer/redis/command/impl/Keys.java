@@ -5,7 +5,6 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
 
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
@@ -52,13 +51,9 @@ public class Keys implements Command
             return Pattern.matches(pattern, content);
         }).flatMap(key -> {
             Resp[] info = new Resp[1];
-            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
-            bulkString.setContent(key);
-            info[0] = bulkString;
+            info[0] = new BulkString(key);
             return Stream.of(info);
         }).toArray(Resp[]::new);
-        RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
-        arrays.setArray(resps);
-        ctx.writeAndFlush(arrays);
+        ctx.writeAndFlush(new RespArray(resps));
     }
 }

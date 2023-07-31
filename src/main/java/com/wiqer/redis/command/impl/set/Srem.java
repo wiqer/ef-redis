@@ -6,7 +6,6 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisSet;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
@@ -40,9 +39,7 @@ public class Srem implements WriteCommand
     {
         RedisSet redisSet = (RedisSet) redisCore.get(key);
         int      srem     = redisSet.srem(members);
-        RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-        i.getValue(srem);
-        ctx.writeAndFlush(i);
+        ctx.writeAndFlush(new RespInt(srem));
     }
 
     @Override

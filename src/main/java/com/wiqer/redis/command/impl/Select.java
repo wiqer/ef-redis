@@ -3,7 +3,6 @@ package com.wiqer.redis.command.impl;
 import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.SimpleString;
@@ -28,11 +27,11 @@ public class Select implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         if(index>0){
-            SimpleString err =  RedisBaseData.getRedisDataByType(SimpleString.class);
-            err.setContent("-ERR invalid DB index");
-            ctx.writeAndFlush(err);
+            SimpleString ok = new SimpleString("-ERR invalid DB index");
+            ctx.writeAndFlush(ok);
         }else {
-            ctx.writeAndFlush(SimpleString.OK);
+            SimpleString ok = new SimpleString("OK");
+            ctx.writeAndFlush(ok);
         }
 
     }

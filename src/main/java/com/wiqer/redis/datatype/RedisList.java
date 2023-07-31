@@ -13,9 +13,6 @@ public class RedisList implements RedisData
     private       long                timeout = -1;
     private final Deque<BytesWrapper> deque   = new LinkedList<>();
 
-    public RedisList() {
-    }
-
     @Override
     public long timeout()
     {

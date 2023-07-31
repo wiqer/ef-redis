@@ -4,7 +4,6 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisString;
 import com.wiqer.redis.resp.BulkString;
@@ -38,12 +37,10 @@ public class Decr implements WriteCommand
         if (redisData == null)
         {
             RedisString stringData = new RedisString();
-            BytesWrapper bytesWrapper=BytesWrapper.ZERO;
+            BytesWrapper bytesWrapper=new BytesWrapper("0".getBytes(UTF_8));
             stringData.setValue(bytesWrapper);
             redisCore.put(key, stringData);
-            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
-            bulkString.setContent(bytesWrapper);
-            ctx.writeAndFlush(bulkString);
+            ctx.writeAndFlush(new BulkString(bytesWrapper));
         }
         else if (redisData instanceof RedisString)
         {
@@ -51,16 +48,11 @@ public class Decr implements WriteCommand
                 BytesWrapper value = ((RedisString) redisData).getValue();
                 long v= Format.parseLong(value.getByteArray(),10);
                 --v;
-                BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
-                bytesWrapper.setByteArray(Format.toByteArray(v));
+                BytesWrapper bytesWrapper= new BytesWrapper(Format.toByteArray(v));
                 ((RedisString) redisData).setValue(bytesWrapper);
-                BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
-                bulkString.setContent(bytesWrapper);
-                ctx.writeAndFlush(bulkString);
+                ctx.writeAndFlush(new BulkString(bytesWrapper));
             }catch (NumberFormatException exception){
-                SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
-                vr.setContent("value is not an integer or out of range");
-                ctx.writeAndFlush(vr);
+                ctx.writeAndFlush(new SimpleString("value is not an integer or out of range"));
             }
 
         }
@@ -75,7 +67,7 @@ public class Decr implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisString stringData = new RedisString(BytesWrapper.ZERO);
+            RedisString stringData = new RedisString(new BytesWrapper("0".getBytes(UTF_8)));
             redisCore.put(key, stringData);
         }
         else if (redisData instanceof RedisString)
@@ -84,9 +76,7 @@ public class Decr implements WriteCommand
                 BytesWrapper value = ((RedisString) redisData).getValue();
                 long v= Format.parseLong(value.getByteArray(),10);
                 --v;
-                BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
-                bytesWrapper.setByteArray(Format.toByteArray(v));
-                ((RedisString) redisData).setValue(bytesWrapper);
+                ((RedisString) redisData).setValue(new BytesWrapper(Format.toByteArray(v)));
             }catch (NumberFormatException exception){
             }
         }
