@@ -10,9 +10,11 @@ import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisSet;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
+import com.wiqer.redis.resp.RespArray;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,7 +44,12 @@ public class Srem implements WriteCommand
         int      srem     = redisSet.srem(members);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
         i.getValue(srem);
-        ctx.writeAndFlush(i);
+        ctx.writeAndFlush(i).addListener(future -> {
+            members.forEach(BytesWrapper::recovery);
+            key.recovery();
+            i.recovery();
+        });
+
     }
 
     @Override

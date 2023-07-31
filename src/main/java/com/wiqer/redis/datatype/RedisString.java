@@ -5,6 +5,7 @@ package com.wiqer.redis.datatype;
  */
 public class RedisString implements RedisData
 {
+    public final static  RedisString ZERO =  new RedisString(BytesWrapper.ZERO);
     private volatile long timeout;
 
     private BytesWrapper value;
@@ -13,7 +14,7 @@ public class RedisString implements RedisData
         this.timeout = -1;
     }
     public RedisString(){
-
+        this.timeout = -1;
     }
     public BytesWrapper getValue()
     {
@@ -22,6 +23,9 @@ public class RedisString implements RedisData
 
     public void setValue(BytesWrapper value)
     {
+        if(this.value != null){
+            this.value.recovery();
+        }
         this.value = value;
     }
 

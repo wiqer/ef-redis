@@ -30,7 +30,7 @@ public class Select implements Command
         if(index>0){
             SimpleString err =  RedisBaseData.getRedisDataByType(SimpleString.class);
             err.setContent("-ERR invalid DB index");
-            ctx.writeAndFlush(err);
+            ctx.writeAndFlush(err).addListener(future -> err.recovery());
         }else {
             ctx.writeAndFlush(SimpleString.OK);
         }

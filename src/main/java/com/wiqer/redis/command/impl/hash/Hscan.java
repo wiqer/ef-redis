@@ -47,4 +47,9 @@ public class Hscan extends AbstraceScan
             return Stream.of(resps);
         }).toArray(Resp[]::new));
     }
+
+    @Override
+    protected BytesWrapper getKey(RedisCore redisCore) {
+        return key;
+    }
 }

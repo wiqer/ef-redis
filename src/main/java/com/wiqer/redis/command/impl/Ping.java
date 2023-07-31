@@ -10,6 +10,8 @@ import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import com.wiqer.redis.resp.SimpleString;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 
 public class Ping implements Command
@@ -31,7 +33,7 @@ public class Ping implements Command
     {
         SimpleString pong =  RedisBaseData.getRedisDataByType(SimpleString.class);
         pong.setContent("PONG");
-        ctx.write(pong);
-        ctx.flush();
+        ctx.writeAndFlush(pong).addListener(future -> {pong.recovery();});
+
     }
 }

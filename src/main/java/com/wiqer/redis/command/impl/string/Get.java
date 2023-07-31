@@ -12,6 +12,8 @@ import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
+
 public class Get implements Command
 {
     private BytesWrapper key;
@@ -31,6 +33,7 @@ public class Get implements Command
     @Override
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
+
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
@@ -41,11 +44,18 @@ public class Get implements Command
             BytesWrapper value = ((RedisString) redisData).getValue();
             BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
             bulkString.setContent(value);
-            ctx.writeAndFlush(bulkString);
+            ctx.writeAndFlush(bulkString).addListener(future -> {
+                key.recovery();
+                bulkString.recovery();
+            });
+
         }
         else
         {
             throw new UnsupportedOperationException();
         }
+
+
+
     }
 }

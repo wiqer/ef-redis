@@ -12,6 +12,7 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,10 @@ public class Lrange implements Command
             bulkString.setContent(bytesWrapper);
             return bulkString;
         }).toArray(Resp[]::new));
-        ctx.writeAndFlush(respArray);
+        ctx.writeAndFlush(respArray).addListener(future -> {
+            key.recovery();
+            Arrays.stream(respArray.getArray()).forEach(Resp::recovery);
+            respArray.recovery();
+        });
     }
 }

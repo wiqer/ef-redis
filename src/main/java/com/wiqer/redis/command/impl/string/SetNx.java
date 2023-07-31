@@ -39,16 +39,16 @@ public class SetNx implements WriteCommand
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(0);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> i.recovery());
         }
         else
         {
-            RedisString redisString = new RedisString();
-            redisString.setValue(value);
-            redisCore.put(key, redisString);
+            RedisString stringData = RedisBaseData.getRedisDataByType(RedisString.class);
+            stringData.setValue(value);
+            redisCore.put(key, stringData);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(1);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> i.recovery());
         }
     }
 
@@ -60,7 +60,7 @@ public class SetNx implements WriteCommand
         }
         else
         {
-            RedisString redisString = new RedisString();
+            RedisString redisString = RedisBaseData.getRedisDataByType(RedisString.class);
             redisString.setValue(value);
             redisCore.put(key, redisString);
 

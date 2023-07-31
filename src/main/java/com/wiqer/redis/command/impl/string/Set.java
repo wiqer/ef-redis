@@ -75,7 +75,7 @@ public class Set implements WriteCommand
             {
                 timeout += System.currentTimeMillis();
             }
-            RedisString stringData = new RedisString();
+            RedisString stringData = RedisBaseData.getRedisDataByType(RedisString.class);
             stringData.setValue(value);
             stringData.setTimeout(timeout);
             redisCore.put(key, stringData);
@@ -99,7 +99,7 @@ public class Set implements WriteCommand
             {
                 timeout += System.currentTimeMillis();
             }
-            RedisString stringData = new RedisString();
+            RedisString stringData = RedisBaseData.getRedisDataByType(RedisString.class);
             stringData.setValue(value);
             stringData.setTimeout(timeout);
             redisCore.put(key, stringData);

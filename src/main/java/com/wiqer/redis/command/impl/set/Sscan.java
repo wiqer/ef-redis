@@ -42,4 +42,9 @@ public class Sscan extends AbstraceScan
         arrays.setArray(collect.toArray(new Resp[collect.size()]));
         return arrays;
     }
+
+    @Override
+    protected BytesWrapper getKey(RedisCore redisCore) {
+        return key;
+    }
 }

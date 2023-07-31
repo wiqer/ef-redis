@@ -39,7 +39,11 @@ public class Del implements WriteCommand
         long remove = redisCore.remove(keys);
         RespInt ri = RedisBaseData.getRedisDataByType(RespInt.class);
         ri.getValue((int) remove);
-        ctx.writeAndFlush(ri);
+        ctx.writeAndFlush(ri).addListener(future -> {
+            keys.forEach(BytesWrapper::recovery);
+            ri.recovery();
+        });
+
     }
 
     @Override

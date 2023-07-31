@@ -13,6 +13,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +43,11 @@ public class Info implements Command
         BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
         bytesWrapper.setByteArray(s.getBytes(CHARSET));
         bulkString.setContent(bytesWrapper);
-        ctx.writeAndFlush(bulkString);
+        ctx.writeAndFlush(bulkString).addListener(future -> {
+            bulkString.recovery();
+            bytesWrapper.recovery();
+        });
+
     }
 
     private String getPid()

@@ -7,11 +7,12 @@ import java.util.Map;
 
 /**
  * @author lilan
+ * Hash 垃圾回收key搁置 todo
  */
 public class RedisHash implements RedisData
 {
     private       long                            timeout = -1;
-    private  Map<BytesWrapper, BytesWrapper> map     = new HashMap<>();
+    private final Map<BytesWrapper, BytesWrapper> map     = new HashMap<>();
 
     public RedisHash() {
     }
@@ -30,7 +31,12 @@ public class RedisHash implements RedisData
 
     public int put(BytesWrapper field, BytesWrapper value)
     {
-        return map.put(field, value) == null ? 1 : 0;
+        BytesWrapper old = map.put(field, value);
+        if(old != null){
+            old.recovery();
+            return 0;
+        }
+        return 1;
     }
 
     public Map<BytesWrapper, BytesWrapper> getMap()
@@ -40,12 +46,19 @@ public class RedisHash implements RedisData
 
     public int del(List<BytesWrapper> fields)
     {
-        return (int) fields.stream().peek(BytesWrapper::recovery).filter(key -> map.remove(key) != null).count();
+        return (int) fields.stream().filter(key -> {
+            BytesWrapper value = map.remove(key);
+            if(value!= null){
+                value.recovery();
+                return true;
+            }
+            return false;
+        } ).count();
     }
 
     @Override
     public void clear() {
-        map  = new HashMap<>();
+        map.clear();
         timeout = -1;
     }
 

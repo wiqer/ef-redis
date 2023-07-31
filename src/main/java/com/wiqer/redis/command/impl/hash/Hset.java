@@ -11,6 +11,8 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
+
 public class Hset implements WriteCommand
 {
     private BytesWrapper key;
@@ -43,7 +45,9 @@ public class Hset implements WriteCommand
             redisCore.put(key, redisHash);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(put);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                i.recovery();
+            });
         }
         else if (redisData instanceof RedisHash)
         {
@@ -51,7 +55,9 @@ public class Hset implements WriteCommand
             int       put       = redisHash.put(field, value);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(put);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                i.recovery();
+            });
         }
         else
         {

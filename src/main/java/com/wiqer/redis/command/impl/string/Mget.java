@@ -13,6 +13,7 @@ import com.wiqer.redis.resp.RespArray;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,7 +59,11 @@ public class Mget implements Command
             bulkString.setContent(bytesWrapper);
             return  bulkString;
         }).toArray(Resp[]::new));
-        ctx.writeAndFlush(arrays);
+        ctx.writeAndFlush(arrays).addListener(future -> {
+            keys.forEach(BytesWrapper::recovery);
+            Arrays.stream(arrays.getArray()).forEach(Resp::recovery);
+            arrays.recovery();
+        });
     }
 
 }

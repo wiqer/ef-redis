@@ -35,13 +35,19 @@ public class Exists implements Command
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(1);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                key.recovery();
+                i.recovery();
+            });
         }
         else
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(1);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                key.recovery();
+                i.recovery();
+            });
         }
     }
 }

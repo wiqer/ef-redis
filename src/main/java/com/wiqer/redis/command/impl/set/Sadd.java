@@ -47,7 +47,9 @@ public class Sadd implements WriteCommand
             redisCore.put(key, redisSet);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(sadd);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                i.recovery();
+            });
         }
         else if (redisData instanceof RedisSet)
         {
@@ -55,7 +57,9 @@ public class Sadd implements WriteCommand
             int      sadd     = redisSet.sadd(member);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(sadd);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                i.recovery();
+            });
         }
         else
         {

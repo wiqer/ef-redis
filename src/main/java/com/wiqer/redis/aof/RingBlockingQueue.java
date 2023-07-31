@@ -458,7 +458,14 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
     public boolean isEmpty() {
         return count.get()==0;
     }
-
+    public boolean isFull() {
+        synchronized (this) {
+            if(writeIndex>readIndex+maxSize) {
+                return  true;
+            }
+        }
+        return count.get() == capacity;
+    }
     @Override
     public boolean contains(Object o) {
         if (o == null) {

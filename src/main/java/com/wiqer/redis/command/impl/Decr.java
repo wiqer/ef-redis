@@ -37,13 +37,15 @@ public class Decr implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisString stringData = new RedisString();
+            RedisString stringData = RedisBaseData.getRedisDataByType(RedisString.class);
             BytesWrapper bytesWrapper=BytesWrapper.ZERO;
             stringData.setValue(bytesWrapper);
             redisCore.put(key, stringData);
             BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
             bulkString.setContent(bytesWrapper);
-            ctx.writeAndFlush(bulkString);
+            ctx.writeAndFlush(bulkString).addListener(future -> {
+                bulkString.recovery();
+            });
         }
         else if (redisData instanceof RedisString)
         {
@@ -53,14 +55,26 @@ public class Decr implements WriteCommand
                 --v;
                 BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
                 bytesWrapper.setByteArray(Format.toByteArray(v));
+
+
                 ((RedisString) redisData).setValue(bytesWrapper);
                 BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
                 bulkString.setContent(bytesWrapper);
-                ctx.writeAndFlush(bulkString);
+                ctx.writeAndFlush(bulkString).addListener(future -> {
+                    key.recovery();
+                    bulkString.recovery();
+                    //回收老的实例化对象
+                    ((RedisString) redisData).getValue().recovery();
+                });
+
+
             }catch (NumberFormatException exception){
                 SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
                 vr.setContent("value is not an integer or out of range");
-                ctx.writeAndFlush(vr);
+                ctx.writeAndFlush(vr).addListener(future -> {
+                    key.recovery();
+                    vr.recovery();
+                });
             }
 
         }
@@ -68,6 +82,7 @@ public class Decr implements WriteCommand
         {
             throw new UnsupportedOperationException();
         }
+
     }
 
     @Override
@@ -75,7 +90,7 @@ public class Decr implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisString stringData = new RedisString(BytesWrapper.ZERO);
+            RedisString stringData = RedisString.ZERO;
             redisCore.put(key, stringData);
         }
         else if (redisData instanceof RedisString)

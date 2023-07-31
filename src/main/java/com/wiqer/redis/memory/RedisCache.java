@@ -1,5 +1,6 @@
 package com.wiqer.redis.memory;
 
+import com.wiqer.redis.aof.RingBlockingQueue;
 import com.wiqer.redis.datatype.RedisBaseData;
 
 import java.lang.reflect.Constructor;
@@ -9,35 +10,25 @@ import java.util.LinkedList;
 
 /**
  * @author lilan
+ * addListener 和 handle 使用的是一个线程，不需要考虑线程安全问题
+ * 但是aof 是另外的线程 ,当然 aof主要针对写入和删除，不存在频繁读写，所以也没必要上缓存
  */
 public class RedisCache<T> {
-    final static HashMap<Class<? extends RedisBaseData>, LinkedList<SimpleRingQueue<RedisBaseData>>> REDIS_CACHE = new HashMap<>();
+    final static HashMap<Class<? extends RedisBaseData>, SimpleRingQueue<RedisBaseData>> REDIS_CACHE = new HashMap<>();
     final static HashMap<Class<? extends RedisBaseData>, Constructor<?>> CONSTRUCTOR_CACHE = new HashMap<>();
 
     public  <T extends RedisBaseData> T  getRedisDataByType(Class<T> clazz) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        LinkedList<SimpleRingQueue<RedisBaseData>> dataCacheLink =  REDIS_CACHE.get(clazz);
-        if(dataCacheLink == null || dataCacheLink.isEmpty()){
+        SimpleRingQueue<RedisBaseData> dataCache=  REDIS_CACHE.get(clazz);
+        if(dataCache == null || dataCache.isEmpty()){
             return getNewRedisData(clazz);
         }
-        for(SimpleRingQueue<RedisBaseData> queue : dataCacheLink){
-            if(queue.isEmpty()){
-                continue;
-            }
-            return (T) queue.poll();
-        }
-        return getNewRedisData(clazz);
+        return (T) dataCache.poll();
     }
 
     public  <T extends RedisBaseData> void   addRedisDataToCache(T  t) {
-        LinkedList<SimpleRingQueue<RedisBaseData>> dataCacheLink =  REDIS_CACHE.computeIfAbsent(t.getClass() , v -> new LinkedList<>());
-        if(dataCacheLink.isEmpty()){
-            dataCacheLink.add(new SimpleRingQueue<>(8888, 88888));
-        }
-        for(SimpleRingQueue<RedisBaseData> queue : dataCacheLink){
-            if(queue.isFull()){
-                continue;
-            }
-            queue.add(t);
+        SimpleRingQueue<RedisBaseData> dataCache =  REDIS_CACHE.computeIfAbsent(t.getClass() , v -> new SimpleRingQueue<>(8888, 88888));
+        if(!dataCache.isFull()){
+            dataCache.add(t);
         }
     }
     /**

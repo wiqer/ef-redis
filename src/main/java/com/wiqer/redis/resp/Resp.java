@@ -100,12 +100,12 @@ public interface Resp extends RedisBaseData {
         if (c == RespType.STATUS.getCode()) {
             return new SimpleString(getString(buffer));
         } else if (c == RespType.ERROR.getCode()) {
-            Errors err = RedisBaseData.getRedisDataByType(Errors.class);
+            Errors err = new Errors();
             err.setContent(getString(buffer));
             return err;
         } else if (c == RespType.INTEGER.getCode()) {
             int value = getNumber(buffer);
-            RespInt respInt =  RedisBaseData.getRedisDataByType(RespInt.class,value);
+            RespInt respInt = new RespInt(value);
             return respInt;
         } else if (c == RespType.BULK.getCode()) {
             int length = getNumber(buffer);
@@ -122,8 +122,8 @@ public interface Resp extends RedisBaseData {
             if (buffer.readByte() != RespType.R.getCode() || buffer.readByte() != RespType.N.getCode()) {
                 throw new IllegalStateException("没有读取到完整的命令");
             }
-            BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
-            BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+            BulkString bulkString = new BulkString();
+            BytesWrapper bytesWrapper =  new BytesWrapper();
             bytesWrapper.setByteArray(content);
             bulkString.setContent(bytesWrapper);
             return bulkString;
@@ -133,9 +133,7 @@ public interface Resp extends RedisBaseData {
             for (int i = 0; i < numOfElement; i++) {
                 array[i] = decode(buffer);
             }
-            RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
-            arrays.setArray(array);
-            return arrays;
+            return new RespArray(array);
         } else {
             /**
              * A~Z

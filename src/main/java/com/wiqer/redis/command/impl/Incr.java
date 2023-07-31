@@ -37,13 +37,15 @@ public class Incr implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisString stringData = new RedisString();
+            RedisString stringData = RedisBaseData.getRedisDataByType(RedisString.class);
             BytesWrapper bytesWrapper=BytesWrapper.ZERO;
             stringData.setValue(bytesWrapper);
             redisCore.put(key, stringData);
             BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
             bulkString.setContent(bytesWrapper);
-            ctx.writeAndFlush(bulkString);
+            ctx.writeAndFlush(bulkString).addListener(future -> {
+                bulkString.recovery();
+            });
         }
         else if (redisData instanceof RedisString)
         {
@@ -51,16 +53,24 @@ public class Incr implements WriteCommand
                 BytesWrapper value = ((RedisString) redisData).getValue();
                 long v= Format.parseLong(value.getByteArray(),10);
                 ++v;
-                BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
-                bytesWrapper.setByteArray(Format.toByteArray(v));
-                ((RedisString) redisData).setValue(bytesWrapper);
+                BytesWrapper newBytesWrapper =  RedisBaseData.getRedisDataByType(BytesWrapper.class);
+                newBytesWrapper.setByteArray(Format.toByteArray(v));
+                ((RedisString) redisData).setValue(newBytesWrapper);
                 BulkString bulkString =  RedisBaseData.getRedisDataByType(BulkString.class);
-                bulkString.setContent(bytesWrapper);
-                ctx.writeAndFlush(bulkString);
+                bulkString.setContent(newBytesWrapper);
+                ctx.writeAndFlush(bulkString).addListener(future -> {
+                    bulkString.recovery();
+                    key.recovery();
+                    value.recovery();
+                });
+
             }catch (NumberFormatException exception){
                 SimpleString vr =  RedisBaseData.getRedisDataByType(SimpleString.class);
                 vr.setContent("value is not an integer or out of range");
-                ctx.writeAndFlush(vr);
+                ctx.writeAndFlush(vr).addListener(future -> {
+                    vr.recovery();
+                    key.recovery();
+                });
             }
 
         }
@@ -68,6 +78,7 @@ public class Incr implements WriteCommand
         {
             throw new UnsupportedOperationException();
         }
+
     }
 
     @Override
@@ -75,7 +86,7 @@ public class Incr implements WriteCommand
         RedisData redisData = redisCore.get(key);
         if (redisData == null)
         {
-            RedisString stringData = new RedisString(BytesWrapper.ZERO);
+            RedisString stringData = RedisString.ZERO;
             redisCore.put(key, stringData);
         }
         else if (redisData instanceof RedisString)

@@ -13,6 +13,7 @@ import com.wiqer.redis.util.StringUtil;
 import io.netty.channel.ChannelHandlerContext;
 
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -59,6 +60,10 @@ public class Keys implements Command
         }).toArray(Resp[]::new);
         RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
         arrays.setArray(resps);
-        ctx.writeAndFlush(arrays);
+        ctx.writeAndFlush(arrays).addListener(future -> {
+            Arrays.stream(resps).forEach(Resp::recovery);
+            arrays.recovery();
+        });
+
     }
 }

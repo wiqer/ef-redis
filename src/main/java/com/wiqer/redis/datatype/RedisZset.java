@@ -7,11 +7,12 @@ import java.util.stream.Collectors;
 
 /**
  * @author lilan
+ * Zset 垃圾回收搁置 todo
  */
 public class RedisZset implements RedisData
 {
     private long                   timeout = -1;
-    private TreeMap<ZsetKey, Long> map     = new TreeMap<>(new Comparator<ZsetKey>()
+    private final TreeMap<ZsetKey, Long> map     = new TreeMap<>(new Comparator<ZsetKey>()
     {
         @Override
         public int compare(ZsetKey o1, ZsetKey o2)
@@ -58,66 +59,12 @@ public class RedisZset implements RedisData
 
     public int remove(List<BytesWrapper> members)
     {
-        return (int) members.stream().peek(RedisBaseData::recovery).filter(member ->map.remove(new ZsetKey(member,0))!=null).count();
+        return (int) members.stream().filter(member ->map.remove(new ZsetKey(member,0))!=null).count();
     }
 
     @Override
     public void clear() {
         timeout = -1;
-        map = new TreeMap<>(new Comparator<ZsetKey>()
-        {
-            @Override
-            public int compare(ZsetKey o1, ZsetKey o2)
-            {
-                if (o1.key.equals(o2.key))
-                {
-                    return 0;
-                }
-                return Long.compare(o1.score, o2.score);
-            }
-        });
-    }
-
-    public static class ZsetKey
-    {
-        BytesWrapper key;
-        long         score;
-
-        public ZsetKey(BytesWrapper key, long score)
-        {
-            this.key = key;
-            this.score = score;
-        }
-
-        public BytesWrapper getKey()
-        {
-            return key;
-        }
-
-        public long getScore()
-        {
-            return score;
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o)
-            {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass())
-            {
-                return false;
-            }
-            ZsetKey zsetKey = (ZsetKey) o;
-            return key.equals(zsetKey.key);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return key.hashCode();
-        }
+        map.clear();
     }
 }

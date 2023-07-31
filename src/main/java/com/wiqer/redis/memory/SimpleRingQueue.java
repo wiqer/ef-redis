@@ -131,27 +131,22 @@ public class SimpleRingQueue<E> extends AbstractQueue<E> implements java.io.Seri
     }
     void refreshIndex(){
        if( readIndex>capacity){
-
-
-       synchronized (this) {
            if (readIndex > capacity) {
                writeIndex -= capacity;
                readIndex -= capacity;
            }
-       }
-
-    }
+        }
     }
     @Override
     public boolean offer(Object o) {
         int localWriteIndex=0;
-        synchronized (this) {
-            if(writeIndex>readIndex+maxSize) {
-                return  false;
-            }
-            count.incrementAndGet();
-            localWriteIndex= ++writeIndex;
+
+        if(writeIndex>readIndex+maxSize) {
+            return  false;
         }
+        count.incrementAndGet();
+        localWriteIndex= ++writeIndex;
+
         int row=(localWriteIndex>>bitHigh)&(rowOffice);
         int column =localWriteIndex&(colOffice);
         if(column==0&&row==0){
@@ -288,6 +283,9 @@ public class SimpleRingQueue<E> extends AbstractQueue<E> implements java.io.Seri
     }
 
     public boolean isFull() {
+        if(writeIndex>readIndex+maxSize) {
+            return  true;
+        }
         return count.get() == capacity;
     }
 

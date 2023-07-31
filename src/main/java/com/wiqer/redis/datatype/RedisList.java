@@ -1,6 +1,7 @@
 package com.wiqer.redis.datatype;
 
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
  */
 public class RedisList implements RedisData {
     private long timeout = -1;
-    private Deque<BytesWrapper> deque = new LinkedList<>();
+    private final Deque<BytesWrapper> deque = new LinkedList<>();
 
     public RedisList() {
     }
@@ -53,16 +54,21 @@ public class RedisList implements RedisData {
 
     public int remove(BytesWrapper value) {
         int count = 0;
-        while (deque.remove(value)) {
-            count++;
+        Iterator<BytesWrapper> it = deque.iterator();
+        while (it.hasNext()) {
+            BytesWrapper item = it.next();
+            if (item.equals(value)) {
+                count++;
+                it.remove();
+                item.recovery();
+            }
         }
-        value.recovery();
         return count;
     }
 
     @Override
     public void clear() {
-        deque = new LinkedList<>();
+        deque.clear();
         timeout = -1;
     }
 }

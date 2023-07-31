@@ -12,6 +12,8 @@ import com.wiqer.redis.resp.SimpleString;
 import com.wiqer.redis.util.TRACEID;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
+
 public class Client implements Command
 {
     private String subCommand;
@@ -44,6 +46,8 @@ public class Client implements Command
             default:
                 throw new IllegalArgumentException();
         }
-        ctx.writeAndFlush(SimpleString.OK);
+        ctx.writeAndFlush(SimpleString.OK).addListener(future -> Arrays.stream(array).forEach(Resp::recovery));
+
+
     }
 }

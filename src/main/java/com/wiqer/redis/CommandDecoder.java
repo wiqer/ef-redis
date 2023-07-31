@@ -48,7 +48,7 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
                 {
                     throw new IllegalStateException("客户端发送的命令应该只能是Resp Array 和 单行命令 类型");
                 }
-                Command command=null;
+                Command command = null;
                 if(resp instanceof RespArray) {
                     command = CommandFactory.from((RespArray) resp);
                 }else if(resp instanceof SimpleString){
@@ -57,7 +57,7 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder
                 }
                 if (command == null)
                 {
-                    Errors err = RedisBaseData.getRedisDataByType(Errors.class);
+                    Errors err = new Errors();
                     err.setContent("unsupport command:" + ((BulkString) ((RespArray) resp).getArray()[0]).getContent().toUtf8String());
                     //取出命令
                     ctx.writeAndFlush(err);

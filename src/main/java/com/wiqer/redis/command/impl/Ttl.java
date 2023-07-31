@@ -37,20 +37,25 @@ public class Ttl implements WriteCommand
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(-2);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> i.recovery());
         }
         else if (redisData.timeout() == -1)
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(-1);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> i.recovery());
+
         }
         else
         {
             long second = (redisData.timeout() - System.currentTimeMillis()) / 1000;
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue((int) second);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> {
+                i.recovery();
+                key.recovery();
+            });
+
         }
     }
 

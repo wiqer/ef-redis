@@ -79,11 +79,12 @@ public class MyRedisServer implements RedisServer
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .option(ChannelOption.SO_REUSEADDR, true)
                 //false
-                .option(ChannelOption.SO_KEEPALIVE, PropertiesUtil.getTcpKeepAlive())
+                //.option(ChannelOption.SO_KEEPALIVE, PropertiesUtil.getTcpKeepAlive())
 //                .childOption(ChannelOption.TCP_NODELAY, true)
 //                .childOption(ChannelOption.SO_SNDBUF, 65535)
 //                .childOption(ChannelOption.SO_RCVBUF, 65535)
                 .localAddress(new InetSocketAddress(PropertiesUtil.getNodeAddress(), PropertiesUtil.getNodePort()))
+                //.localAddress(PropertiesUtil.getNodePort())
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {

@@ -7,11 +7,13 @@ import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisBaseData;
 import com.wiqer.redis.datatype.RedisZset;
+import com.wiqer.redis.datatype.ZsetKey;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -39,7 +41,7 @@ public class Zrevrange implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         RedisZset               redisZset = (RedisZset) redisCore.get(key);
-        List<RedisZset.ZsetKey> keys      = redisZset.reRange(start, end);
+        List<ZsetKey> keys      = redisZset.reRange(start, end);
         Resp[] resps = keys.stream().flatMap(key -> {
             Resp[] info = new Resp[2];
             BulkString bulkString0 =  RedisBaseData.getRedisDataByType(BulkString.class);
@@ -54,6 +56,10 @@ public class Zrevrange implements Command
         }).toArray(Resp[]::new);
         RespArray arrays = RedisBaseData.getRedisDataByType(RespArray.class);
         arrays.setArray(resps);
-        ctx.writeAndFlush(arrays);
+        ctx.writeAndFlush(arrays).addListener(future -> {
+            Arrays.stream(resps).forEach(Resp::recovery);
+            arrays.recovery();
+        });
+
     }
 }

@@ -34,41 +34,46 @@ public class Type implements Command
         {
             SimpleString none =  RedisBaseData.getRedisDataByType(SimpleString.class);
             none.setContent("none");
-            ctx.writeAndFlush(none);
+            ctx.writeAndFlush(none).addListener(future -> {key.recovery();none.recovery();});
         }
         else if (redisData instanceof RedisString)
         {
             SimpleString string =  RedisBaseData.getRedisDataByType(SimpleString.class);
             string.setContent("string");
-            ctx.writeAndFlush(string);
+            ctx.writeAndFlush(string).addListener(future ->  {key.recovery();string.recovery();});
         }
         else if (redisData instanceof RedisList)
         {
             SimpleString list =  RedisBaseData.getRedisDataByType(SimpleString.class);
             list.setContent("list");
-            ctx.writeAndFlush(list);
+            ctx.writeAndFlush(list).addListener(future -> {key.recovery();list.recovery();});;
+
         }
         else if (redisData instanceof RedisSet)
         {
             SimpleString set =  RedisBaseData.getRedisDataByType(SimpleString.class);
             set.setContent("set");
-            ctx.writeAndFlush(set);
+            ctx.writeAndFlush(set).addListener(future ->  {key.recovery();set.recovery();});;
+
         }
         else if (redisData instanceof RedisHash)
         {
             SimpleString hash =  RedisBaseData.getRedisDataByType(SimpleString.class);
             hash.setContent("hash");
-            ctx.writeAndFlush(hash);
+            ctx.writeAndFlush(hash).addListener(future ->  {key.recovery();hash.recovery();});;
+
         }
         else if (redisData instanceof RedisZset)
         {
             SimpleString zset =  RedisBaseData.getRedisDataByType(SimpleString.class);
             zset.setContent("zset");
-            ctx.writeAndFlush(zset);
+            ctx.writeAndFlush(zset).addListener(future -> {key.recovery();zset.recovery();} );;
+
         }
         else
         {
             throw new UnsupportedOperationException();
         }
+
     }
 }

@@ -5,10 +5,7 @@ import com.wiqer.redis.RedisCore;
 import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
-import com.wiqer.redis.datatype.BytesWrapper;
-import com.wiqer.redis.datatype.RedisBaseData;
-import com.wiqer.redis.datatype.RedisData;
-import com.wiqer.redis.datatype.RedisZset;
+import com.wiqer.redis.datatype.*;
 import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
@@ -20,7 +17,7 @@ import java.util.List;
 public class Zadd implements WriteCommand
 {
     private BytesWrapper            key;
-    private List<RedisZset.ZsetKey> keys;
+    private List<ZsetKey> keys;
 
     @Override
     public CommandType type()
@@ -37,7 +34,7 @@ public class Zadd implements WriteCommand
         {
             long         score  = Long.parseLong(((BulkString) array[i]).getContent().toUtf8String());
             BytesWrapper member = ((BulkString) array[i + 1]).getContent();
-            keys.add(new RedisZset.ZsetKey(member, score));
+            keys.add(new ZsetKey(member, score));
         }
     }
 
@@ -52,7 +49,8 @@ public class Zadd implements WriteCommand
             redisCore.put(key, redisZset);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(add);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> i.recovery());
+
         }
         else if (redisData instanceof RedisZset)
         {
@@ -60,7 +58,7 @@ public class Zadd implements WriteCommand
             int       add       = redisZset.add(keys);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
             i.getValue(add);
-            ctx.writeAndFlush(i);
+            ctx.writeAndFlush(i).addListener(future -> i.recovery());
         }
         else
         {

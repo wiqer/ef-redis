@@ -13,6 +13,7 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,7 +43,12 @@ public class Zrem implements WriteCommand
         int       remove    = redisZset.remove(members);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
         i.getValue(remove);
-        ctx.writeAndFlush(i);
+        ctx.writeAndFlush(i).addListener(future -> {
+            members.forEach(BytesWrapper::recovery);
+            key.recovery();
+            i.recovery();
+        });
+
     }
 
     @Override
