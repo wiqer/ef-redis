@@ -42,7 +42,7 @@ public class Zrem implements WriteCommand
         RedisZset redisZset = (RedisZset) redisCore.get(key);
         int       remove    = redisZset.remove(members);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-        i.getValue(remove);
+        i.setValue(remove);
         ctx.writeAndFlush(i);
         members.forEach(BytesWrapper::recovery);
         key.recovery();

@@ -14,8 +14,18 @@ public class RespInt implements Resp
     {
         return value;
     }
-    public void getValue(int value)
+    public void setValue(int value)
     {
         this.value = value;
+    }
+
+    private Long createdThreadId;
+
+    public void setCreatedThreadId(Long createdThreadId){
+        this.createdThreadId = createdThreadId;
+    }
+    @Override
+    public Long getCreatedThreadId(){
+        return createdThreadId;
     }
 }

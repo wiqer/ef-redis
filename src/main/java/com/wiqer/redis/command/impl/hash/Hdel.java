@@ -41,7 +41,7 @@ public class Hdel implements WriteCommand
         RedisHash redisHash = (RedisHash) redisCore.get(key);
         int       del       = redisHash.del(fields);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-        i.getValue(del);
+        i.setValue(del);
         ctx.writeAndFlush(i);
         key.recovery();
         fields.forEach(BytesWrapper::recovery);

@@ -14,6 +14,7 @@ public class SimpleString implements Resp
     {
         this.content = content;
     }
+
     public SimpleString() {}
     public String getContent()
     {
@@ -22,5 +23,14 @@ public class SimpleString implements Resp
     public void setContent(String content)
     {
         this.content = content;
+    }
+    private Long createdThreadId;
+
+    public void setCreatedThreadId(Long createdThreadId){
+        this.createdThreadId = createdThreadId;
+    }
+    @Override
+    public Long getCreatedThreadId(){
+        return createdThreadId;
     }
 }

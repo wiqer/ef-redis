@@ -27,4 +27,14 @@ public class BulkString implements Resp
     {
         this.content = content;
     }
+    private Long createdThreadId;
+
+    public void setCreatedThreadId(Long createdThreadId){
+        this.createdThreadId = createdThreadId;
+    }
+    @Override
+    public Long getCreatedThreadId(){
+        return createdThreadId;
+    }
+
 }

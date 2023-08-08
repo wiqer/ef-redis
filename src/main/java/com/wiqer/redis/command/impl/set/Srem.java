@@ -43,7 +43,7 @@ public class Srem implements WriteCommand
         RedisSet redisSet = (RedisSet) redisCore.get(key);
         int      srem     = redisSet.srem(members);
         RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-        i.getValue(srem);
+        i.setValue(srem);
         ctx.writeAndFlush(i);
         members.forEach(BytesWrapper::recovery);
         key.recovery();

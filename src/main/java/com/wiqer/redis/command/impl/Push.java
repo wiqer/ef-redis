@@ -44,7 +44,7 @@ public abstract class Push implements WriteCommand
             biConsumer.accept(redisList, value);
             redisCore.put(key, redisList);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(redisList.size());
+            i.setValue(redisList.size());
             ctx.writeAndFlush(i);
             key.recovery();
             value.forEach(BytesWrapper::recovery);
@@ -62,7 +62,7 @@ public abstract class Push implements WriteCommand
             biConsumer.accept((RedisList) redisData, value);
             redisCore.put(key, redisData);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(((RedisList) redisData).size());
+            i.setValue(((RedisList) redisData).size());
             ctx.writeAndFlush(i);
             key.recovery();
             value.forEach(BytesWrapper::recovery);

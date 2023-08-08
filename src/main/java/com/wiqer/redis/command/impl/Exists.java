@@ -34,7 +34,7 @@ public class Exists implements Command
         if (exist)
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(1);
+            i.setValue(1);
             ctx.writeAndFlush(i);
             key.recovery();
             i.recovery();
@@ -42,7 +42,7 @@ public class Exists implements Command
         else
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(1);
+            i.setValue(1);
             ctx.writeAndFlush(i);
             key.recovery();
             i.recovery();

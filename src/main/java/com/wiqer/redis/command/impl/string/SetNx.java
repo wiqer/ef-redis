@@ -38,7 +38,7 @@ public class SetNx implements WriteCommand
         if (exist)
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(0);
+            i.setValue(0);
             ctx.writeAndFlush(i).addListener(future -> i.recovery());
         }
         else
@@ -47,7 +47,7 @@ public class SetNx implements WriteCommand
             stringData.setValue(value);
             redisCore.put(key, stringData);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(1);
+            i.setValue(1);
             ctx.writeAndFlush(i).addListener(future -> i.recovery());
         }
     }

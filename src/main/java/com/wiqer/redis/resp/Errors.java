@@ -24,4 +24,13 @@ public class Errors implements Resp
     public void clear() {
 
     }
+    private Long createdThreadId;
+
+    public void setCreatedThreadId(Long createdThreadId){
+        this.createdThreadId = createdThreadId;
+    }
+    @Override
+    public Long getCreatedThreadId(){
+        return createdThreadId;
+    }
 }

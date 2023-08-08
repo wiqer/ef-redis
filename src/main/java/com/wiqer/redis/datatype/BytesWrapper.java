@@ -76,5 +76,13 @@ public class BytesWrapper implements Comparable<BytesWrapper>, RedisBaseData
     @Override
     public void clear() {
     }
+    private Long createdThreadId;
 
+    public void setCreatedThreadId(Long createdThreadId){
+        this.createdThreadId = createdThreadId;
+    }
+    @Override
+    public Long getCreatedThreadId(){
+        return createdThreadId;
+    }
 }

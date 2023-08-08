@@ -48,7 +48,7 @@ public class Zadd implements WriteCommand
             int       add       = redisZset.add(keys);
             redisCore.put(key, redisZset);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(add);
+            i.setValue(add);
             ctx.writeAndFlush(i);
             i.recovery();
 
@@ -58,7 +58,7 @@ public class Zadd implements WriteCommand
             RedisZset redisZset = (RedisZset) redisData;
             int       add       = redisZset.add(keys);
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(add);
+            i.setValue(add);
             ctx.writeAndFlush(i);
             i.recovery();
         }

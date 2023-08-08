@@ -39,7 +39,7 @@ public class Expire implements WriteCommand
         if (redisData == null)
         {
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(0);
+            i.setValue(0);
             ctx.writeAndFlush(i);
             key.recovery();
             i.recovery();
@@ -48,7 +48,7 @@ public class Expire implements WriteCommand
         {
             redisData.setTimeout(System.currentTimeMillis() + (second * 1000));
             RespInt i = RedisBaseData.getRedisDataByType(RespInt.class);
-            i.getValue(1);
+            i.setValue(1);
             ctx.writeAndFlush(i);
             key.recovery();
             i.recovery();

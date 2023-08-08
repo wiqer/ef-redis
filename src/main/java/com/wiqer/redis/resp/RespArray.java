@@ -21,4 +21,14 @@ public class RespArray implements Resp
     {
         this.array = array;
     }
+    private Long createdThreadId;
+
+    public void setCreatedThreadId(Long createdThreadId){
+        this.createdThreadId = createdThreadId;
+    }
+    @Override
+    public Long getCreatedThreadId(){
+        return createdThreadId;
+    }
+
 }

@@ -5,6 +5,7 @@ import com.wiqer.redis.datatype.RedisBaseData;
 import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -99,14 +100,23 @@ public interface Resp extends RedisBaseData {
         }
         char c = (char) buffer.readByte();
         if (c == RespType.STATUS.getCode()) {
-            return new SimpleString(getString(buffer));
+            Long threadId = Thread.currentThread().getId();
+            SimpleString simpleString =  RedisBaseData.getRedisDataByTypeAndThreadId(SimpleString.class, threadId);
+            simpleString.setCreatedThreadId(threadId);
+            simpleString.setContent(getString(buffer, threadId));
+            return simpleString;
         } else if (c == RespType.ERROR.getCode()) {
-            Errors err = new Errors();
-            err.setContent(getString(buffer));
+            Long threadId = Thread.currentThread().getId();
+            Errors err =  RedisBaseData.getRedisDataByTypeAndThreadId(Errors.class, threadId);
+            err.setCreatedThreadId(threadId);
+            err.setContent(getString(buffer, threadId));
             return err;
         } else if (c == RespType.INTEGER.getCode()) {
             int value = getNumber(buffer);
-            RespInt respInt = new RespInt(value);
+            Long threadId = Thread.currentThread().getId();
+            RespInt respInt =  RedisBaseData.getRedisDataByTypeAndThreadId(RespInt.class, threadId);
+            respInt.setCreatedThreadId(threadId);
+            respInt.setValue(value);
             return respInt;
         } else if (c == RespType.BULK.getCode()) {
             int length = getNumber(buffer);
@@ -123,8 +133,11 @@ public interface Resp extends RedisBaseData {
             if (buffer.readByte() != RespType.R.getCode() || buffer.readByte() != RespType.N.getCode()) {
                 throw new IllegalStateException("没有读取到完整的命令");
             }
-            BulkString bulkString = new BulkString();
-            BytesWrapper bytesWrapper =  new BytesWrapper();
+            Long threadId = Thread.currentThread().getId();
+            BulkString bulkString =  RedisBaseData.getRedisDataByTypeAndThreadId(BulkString.class, threadId);
+            bulkString.setCreatedThreadId(threadId);
+            BytesWrapper bytesWrapper =  RedisBaseData.getRedisDataByTypeAndThreadId(BytesWrapper.class, threadId);
+            bytesWrapper.setCreatedThreadId(threadId);
             bytesWrapper.setByteArray(content);
             bulkString.setContent(bytesWrapper);
             return bulkString;
@@ -134,13 +147,21 @@ public interface Resp extends RedisBaseData {
             for (int i = 0; i < numOfElement; i++) {
                 array[i] = decode(buffer);
             }
-            return new RespArray(array);
+            Long threadId = Thread.currentThread().getId();
+            RespArray respArray =  RedisBaseData.getRedisDataByTypeAndThreadId(RespArray.class, threadId);
+            respArray.setArray(array);
+            respArray.setCreatedThreadId(threadId);
+            return respArray;
         } else {
             /**
              * A~Z
              */
             if (c > 64 && c < 91) {
-                return new SimpleString(c + getString(buffer));
+                Long threadId = Thread.currentThread().getId();
+                SimpleString simpleString =  RedisBaseData.getRedisDataByTypeAndThreadId(SimpleString.class, threadId);
+                simpleString.setContent(c + getString(buffer, threadId));
+                simpleString.setCreatedThreadId(Thread.currentThread().getId());
+                return  simpleString;
             } else {
                 return decode(buffer);
             }
@@ -171,10 +192,11 @@ public interface Resp extends RedisBaseData {
         }
         return value;
     }
-
-    static String getString(ByteBuf buffer) {
+    static HashMap<Long, StringBuilder> LOCAL_THREAD_GET_STRING_BUILDER_MAP = new HashMap<>();
+    static String getString(ByteBuf buffer, Long threadId) {
         char c;
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = LOCAL_THREAD_GET_STRING_BUILDER_MAP.computeIfAbsent(threadId, v ->  new StringBuilder());
+        builder.setLength(0);
         while (buffer.readableBytes() > 0 && (c = (char) buffer.readByte()) != RespType.R.getCode()) {
             builder.append(c);
         }
