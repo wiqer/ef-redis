@@ -80,7 +80,8 @@ redis-client 或者 redis-desktop-manager 都可以
 
 ####  秒吞吐量
 
-同样资源下 EF-Redis秒吞吐量是Redis的80%-95%
+同样资源下 EF-Redis秒吞吐量是Redis的70%-95%
+将大部分redis data 缓存后 , 性能达到了redis的80%-95%
 
 ####  延迟
 
