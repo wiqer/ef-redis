@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
  */
 public interface RedisBaseData
 {
-    RedisCache<RedisBaseData> REDIS_CACHE = new RedisCache<>();
+     RedisCache<RedisBaseData> REDIS_CACHE = new RedisCache<>();
 
     default void clear() {
 

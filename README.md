@@ -90,9 +90,11 @@ EF-Redis 0.5%的可能延迟超过100ms小于1s
 
 Redis 基本稳定，100%小于12ms，0.5%的可能延迟超过2ms
 
-![redis屏幕截图](cpp-redis.png "redis屏幕截图.png")
+![redis 性能 屏幕截图](cpp-redis.png "redis屏幕截图.png")
 
-![ef-redis屏幕截图](java-redis.png "ef-redis屏幕截图.png")
+![ef-redis 性能 屏幕截图](java-redis.png "ef-redis屏幕截图.png")
+
+![ef-redis 带大部分部分redis数据免gc 性能 屏幕截图](java-redis-gc.png "ef-redis 带大部分部分redis数据免gc 性能 屏幕截图.png")
 
 ➕ v 一起交流互联网
 ![image](https://github.com/wiqer/ef-redis/assets/54705062/6d57b1a9-3dc7-4b33-857a-9e5d1450111b)

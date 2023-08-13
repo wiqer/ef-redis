@@ -36,6 +36,7 @@ public class RedisCache<T> {
         }
     });
     private volatile  boolean running = false;
+
     public  void start() {
         if (running) {
             return;
@@ -55,8 +56,9 @@ public class RedisCache<T> {
             }, 10, 10, TimeUnit.MILLISECONDS);
         }
     }
-    static {
-       // start();
+
+    public RedisCache() {
+        start();
     }
 
     private  void scavenge() {
