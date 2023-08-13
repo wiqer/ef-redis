@@ -19,15 +19,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * 但是aof 是另外的线程 ,当然 aof主要针对写入和删除，不存在频繁读写，所以也没必要上缓存
  */
 public class RedisCache<T> {
-    final static HashMap<Class<? extends RedisBaseData>, SimpleRingQueue<RedisBaseData>> REDIS_CACHE = new HashMap<>();
-    final static HashMap<Class<? extends RedisBaseData>, Constructor<?>> CONSTRUCTOR_CACHE = new HashMap<>();
+    final  HashMap<Class<? extends RedisBaseData>, SimpleRingQueue<RedisBaseData>> REDIS_CACHE = new HashMap<>();
+    final  HashMap<Class<? extends RedisBaseData>, Constructor<?>> CONSTRUCTOR_CACHE = new HashMap<>();
 
-    final static HashMap<Class<? extends RedisBaseData>, SimpleRingQueue<RedisBaseData>[]> CONSTRUCTOR_MULTI_THREAD_WRITE_CACHE = new HashMap<>();
-    final static HashMap<Long, HashMap<Class<? extends RedisBaseData>, RingBlockingQueue<RedisBaseData>>> CONSTRUCTOR_MULTI_THREAD_READ_CACHE = new HashMap<>();
-    final static int  MULTI_THREAD_CACHE_ARRAY_SIZE = 4;
-    volatile static int  readIndex = 0;
-    volatile static int  writeIndex = 2;
-    private static final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1,new ThreadFactory() {
+    final  HashMap<Class<? extends RedisBaseData>, SimpleRingQueue<RedisBaseData>[]> CONSTRUCTOR_MULTI_THREAD_WRITE_CACHE = new HashMap<>();
+    final  HashMap<Long, HashMap<Class<? extends RedisBaseData>, RingBlockingQueue<RedisBaseData>>> CONSTRUCTOR_MULTI_THREAD_READ_CACHE = new HashMap<>();
+    final  int  MULTI_THREAD_CACHE_ARRAY_SIZE = 4;
+    volatile  int  readIndex = 0;
+    volatile  int  writeIndex = 2;
+    private  final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1,new ThreadFactory() {
         private AtomicInteger index = new AtomicInteger(0);
 
         @Override
@@ -35,8 +35,8 @@ public class RedisCache<T> {
             return new Thread(r, "scavenge_" + index.getAndIncrement());
         }
     });
-    private volatile static boolean running = false;
-    public static void start() {
+    private volatile  boolean running = false;
+    public  void start() {
         if (running) {
             return;
         }
@@ -59,7 +59,7 @@ public class RedisCache<T> {
        // start();
     }
 
-    private static void scavenge() {
+    private  void scavenge() {
         int copyIndex = (writeIndex - 1) & 3;
         for(Map.Entry<Class<? extends RedisBaseData>, SimpleRingQueue<RedisBaseData>[]> entry : CONSTRUCTOR_MULTI_THREAD_WRITE_CACHE.entrySet()){
             final  SimpleRingQueue<RedisBaseData>[] simpleRingQueues = entry.getValue();

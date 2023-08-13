@@ -83,6 +83,7 @@ public class NettyAffinityThreadFactory extends AffinityThreadFactory {
         this(poolName, daemon, priority, (ThreadGroup)null);
     }
 
+    @Override
     public Thread newThread(Runnable r) {
         Thread t = this.newThread(SingleFastThreadLocalRunnable.wrap(r), this.prefix + this.nextId.incrementAndGet());
 
