@@ -1,5 +1,7 @@
 package com.wiqer.redis.aof;
 
+import io.github.karlatemp.unsafeaccessor.Unsafe;
+
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -22,8 +24,13 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
 
     /**
      * 一块连续内存页肯定能装下
+     *         boolean pa = VM.isDirectMemoryPageAligned();
+     *         int ps = Bits.pageSize();
+     *         jdk 11的 jdk.internal.misc.Unsafe.pageSize()
+     *        jdk 8 的 Unsafe.getUnsafe().pageSize()
+     *        win 平台一般是 1 << 12 也就是 4096
      */
-    static final int MAXIMUM_SUBAREA = 1 << 12;
+    static final int MAXIMUM_SUBAREA = Unsafe.getUnsafe().pageSize();
 
     Object data[][];
 
