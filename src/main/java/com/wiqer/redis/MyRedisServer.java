@@ -10,6 +10,7 @@ import com.wiqer.redis.channel.single.NettySingleSelectChannelOption;
 import com.wiqer.redis.channel.single.SingleSelectChannelOption;
 import com.wiqer.redis.util.PropertiesUtil;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -78,13 +79,14 @@ public class MyRedisServer implements RedisServer
                 .handler(new LoggingHandler(LogLevel.INFO))
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .option(ChannelOption.SO_REUSEADDR, true)
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 //false
-                //.option(ChannelOption.SO_KEEPALIVE, PropertiesUtil.getTcpKeepAlive())
-//                .childOption(ChannelOption.TCP_NODELAY, true)
-//                .childOption(ChannelOption.SO_SNDBUF, 65535)
-//                .childOption(ChannelOption.SO_RCVBUF, 65535)
+                .option(ChannelOption.SO_KEEPALIVE, PropertiesUtil.getTcpKeepAlive())
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.SO_SNDBUF, 65535)
+                .childOption(ChannelOption.SO_RCVBUF, 65535)
                 .localAddress(new InetSocketAddress(PropertiesUtil.getNodeAddress(), PropertiesUtil.getNodePort()))
-                //.localAddress(PropertiesUtil.getNodePort())
+                .localAddress(PropertiesUtil.getNodePort())
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {

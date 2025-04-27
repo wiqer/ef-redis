@@ -90,7 +90,7 @@ EF-Redis，与Redis相当
 EF-Redis 0.5%的可能延迟超过100ms小于1s
 
 Redis 基本稳定，100%小于12ms，0.5%的可能延迟超过2ms
-
+测试命令 redis-benchmark.exe -h 127.0.0.1 -p 6379 -c 100 -n 1000000
 ![redis 性能 屏幕截图](cpp-redis.png "redis屏幕截图.png")
 
 ![ef-redis 性能 屏幕截图](java-redis.png "ef-redis屏幕截图.png")

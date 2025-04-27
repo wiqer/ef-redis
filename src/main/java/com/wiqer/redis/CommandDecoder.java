@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 public class CommandDecoder extends LengthFieldBasedFrameDecoder
 {
     private static final Logger LOGGER = Logger.getLogger(CommandDecoder.class);
-    private static final int MAX_FRAME_LENGTH = Integer.MAX_VALUE;
+    private static final int MAX_FRAME_LENGTH = 65536>>>2;
     private  Aof aof=null;
 //    static {
 //        if(PropertiesUtil.getAppendOnly()) {
