@@ -41,7 +41,7 @@ public class RedisSet implements RedisData {
         Set<BytesWrapper> resSet = new HashSet<>();
         while (resSet.size() < size){
             for (BytesWrapper val : set){
-                if(n >random.nextInt(n)){
+                if(n > random.nextInt(n)){
                     resSet.add(val);
                 }
                 if(resSet.size() >= size){

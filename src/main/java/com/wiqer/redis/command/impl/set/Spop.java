@@ -26,11 +26,19 @@ public class Spop implements WriteCommand {
     @Override
     public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
-        member = Integer.parseInt(((BulkString) array[2]).getContent().toUtf8String());
+        if(array.length == 3) {
+            member = Integer.parseInt(((BulkString) array[2]).getContent().toUtf8String());
+        }else {
+            member = 1;
+        }
+
     }
 
     @Override
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
+        if(member < 1) {
+            ctx.writeAndFlush(new Errors("1"));
+        }
         RedisData redisData = redisCore.get(key);
         if (redisData == null) {
             ctx.writeAndFlush(new Errors("1"));
