@@ -134,9 +134,12 @@ redis-benchmark 在代码根目录中
     2.1 ，为什么自己开发，不用开源的？
         java并没有scsp专用的堵塞队列，因为JCtools有开源的scsp堵塞队列，并没有实现BlockingQueue接口，而且性能并不好。
         RingBlockingQueue用到了连续内存页技术，读写内存更快，内存预申请，是Java自带堵塞队列性能的10倍以上。
-##### 3，差异
+##### 3， CPP Redis 于 JAVA Redsi 的主要差异
     3.1 CPP Redis 5.0 版本用的是nio epool模型，EF-Redis 用的是 select 模型，在连接数100 这个量级，select优势更大一些
     3.2 CPP Redis 5.0 最大帧支持500mb，EF-Redis 支持 50mb
+    3.3 二者数据结构不同
+    3.4 Java redis 没有实现 ttl超时探测，但这点不影响性能
+    3.5 Java redis 没有实现 哨兵 和 主从复制，但不影响性能
 ##### 4，这还没完
     分支中有操作命令无gc的版本，gc分支合并master分支后，有望性能在提升2%左右
 
