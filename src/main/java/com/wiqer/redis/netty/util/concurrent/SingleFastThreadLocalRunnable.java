@@ -21,6 +21,6 @@ class SingleFastThreadLocalRunnable implements Runnable {
     }
 
     static Runnable wrap(Runnable runnable) {
-        return (Runnable)(runnable instanceof SingleFastThreadLocalRunnable ? runnable : new SingleFastThreadLocalRunnable(runnable));
+        return (Runnable) (runnable instanceof SingleFastThreadLocalRunnable ? runnable : new SingleFastThreadLocalRunnable(runnable));
     }
 }

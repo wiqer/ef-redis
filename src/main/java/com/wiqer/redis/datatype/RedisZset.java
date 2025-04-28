@@ -8,16 +8,12 @@ import java.util.stream.Collectors;
 /**
  * @author lilan
  */
-public class RedisZset implements RedisData
-{
-    private long                   timeout = -1;
-    private TreeMap<ZsetKey, Long> map     = new TreeMap<>(new Comparator<ZsetKey>()
-    {
+public class RedisZset implements RedisData {
+    private long timeout = -1;
+    private TreeMap<ZsetKey, Long> map = new TreeMap<>(new Comparator<ZsetKey>() {
         @Override
-        public int compare(ZsetKey o1, ZsetKey o2)
-        {
-            if (o1.key.equals(o2.key))
-            {
+        public int compare(ZsetKey o1, ZsetKey o2) {
+            if (o1.key.equals(o2.key)) {
                 return 0;
             }
             return Long.compare(o1.score, o2.score);
@@ -25,69 +21,56 @@ public class RedisZset implements RedisData
     });
 
     @Override
-    public long timeout()
-    {
+    public long timeout() {
         return timeout;
     }
 
     @Override
-    public void setTimeout(long timeout)
-    {
+    public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
 
-    public int add(List<ZsetKey> keys)
-    {
+    public int add(List<ZsetKey> keys) {
         return (int) keys.stream().peek(key -> {
-            map.put(key,key.getScore());
+            map.put(key, key.getScore());
         }).count();
     }
 
-    public List<ZsetKey> range(int start, int end)
-    {
+    public List<ZsetKey> range(int start, int end) {
         return map.keySet().stream().skip(start).limit(end - start >= 0 ? end - start + 1 : 0).collect(Collectors.toList());
     }
 
-    public List<ZsetKey> reRange(int start, int end)
-    {
+    public List<ZsetKey> reRange(int start, int end) {
         return map.descendingKeySet().descendingSet().stream().skip(start).limit(end - start >= 0 ? end - start + 1 : 0).collect(Collectors.toList());
     }
 
-    public int remove(List<BytesWrapper> members)
-    {
-        return (int) members.stream().filter(member ->map.remove(new ZsetKey(member,0))!=null).count();
+    public int remove(List<BytesWrapper> members) {
+        return (int) members.stream().filter(member -> map.remove(new ZsetKey(member, 0)) != null).count();
     }
 
-    public static class ZsetKey
-    {
+    public static class ZsetKey {
         BytesWrapper key;
-        long         score;
+        long score;
 
-        public ZsetKey(BytesWrapper key, long score)
-        {
+        public ZsetKey(BytesWrapper key, long score) {
             this.key = key;
             this.score = score;
         }
 
-        public BytesWrapper getKey()
-        {
+        public BytesWrapper getKey() {
             return key;
         }
 
-        public long getScore()
-        {
+        public long getScore() {
             return score;
         }
 
         @Override
-        public boolean equals(Object o)
-        {
-            if (this == o)
-            {
+        public boolean equals(Object o) {
+            if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass())
-            {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
             ZsetKey zsetKey = (ZsetKey) o;
@@ -95,8 +78,7 @@ public class RedisZset implements RedisData
         }
 
         @Override
-        public int hashCode()
-        {
+        public int hashCode() {
             return key.hashCode();
         }
     }

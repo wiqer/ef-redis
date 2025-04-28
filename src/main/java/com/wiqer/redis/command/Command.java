@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 public interface Command
 {
     Charset CHARSET = StandardCharsets.UTF_8;
-    static final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Command.class);
 
 
     /**

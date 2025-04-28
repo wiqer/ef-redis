@@ -12,6 +12,7 @@ import io.netty.util.internal.SocketUtils;
 import io.netty.util.internal.SuppressJava6Requirement;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -24,6 +25,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class NioSingleServerSocketChannel extends AbstractNioSingleMessageChannel implements io.netty.channel.socket.ServerSocketChannel {
 
     private static final ChannelMetadata METADATA = new ChannelMetadata(false, 16);
@@ -135,12 +137,12 @@ public class NioSingleServerSocketChannel extends AbstractNioSingleMessageChanne
                 return 1;
             }
         } catch (Throwable t) {
-            logger.warn("Failed to create a new channel from an accepted socket.", t);
+            log.warn("Failed to create a new channel from an accepted socket.", t);
 
             try {
                 ch.close();
             } catch (Throwable t2) {
-                logger.warn("Failed to close a socket.", t2);
+                log.warn("Failed to close a socket.", t2);
             }
         }
 

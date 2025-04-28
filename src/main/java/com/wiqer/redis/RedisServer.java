@@ -1,7 +1,6 @@
 package com.wiqer.redis;
 
-public interface RedisServer
-{
+public interface RedisServer {
     void start();
 
     void close();

@@ -26,7 +26,7 @@ public class NioSingleEventLoopGroup extends SingleThreadEventLoopGroup {
      * {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
      */
     private NioSingleEventLoopGroup(int nThreads) {
-        this(nThreads, (Executor) null);
+        this((Executor) null);
     }
 
     /**
@@ -34,65 +34,56 @@ public class NioSingleEventLoopGroup extends SingleThreadEventLoopGroup {
      * {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
      */
     public NioSingleEventLoopGroup(ThreadFactory threadFactory) {
-        this(0, threadFactory, SelectorProvider.provider());
+        this(threadFactory, SelectorProvider.provider());
     }
 
-    /**
-     * Create a new instance using the specified number of threads, the given {@link ThreadFactory} and the
-     * {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
-     */
-    private NioSingleEventLoopGroup(int nThreads, ThreadFactory threadFactory) {
-        this(nThreads, threadFactory, SelectorProvider.provider());
-    }
-
-    private NioSingleEventLoopGroup(int nThreads, Executor executor) {
-        this(nThreads, executor, SelectorProvider.provider());
+    public NioSingleEventLoopGroup( Executor executor) {
+        this(executor, SelectorProvider.provider());
     }
 
     /**
      * Create a new instance using the specified number of threads, the given {@link ThreadFactory} and the given
      * {@link SelectorProvider}.
      */
-    private NioSingleEventLoopGroup(
-            int nThreads, ThreadFactory threadFactory, final SelectorProvider selectorProvider) {
-        this(nThreads, threadFactory, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
+    private NioSingleEventLoopGroup(ThreadFactory threadFactory, final SelectorProvider selectorProvider) {
+        this(threadFactory, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
     }
 
-    private NioSingleEventLoopGroup(int nThreads, ThreadFactory threadFactory,
+    private NioSingleEventLoopGroup( ThreadFactory threadFactory,
                              final SelectorProvider selectorProvider, final SelectStrategyFactory selectStrategyFactory) {
-        super(nThreads, threadFactory, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
+        super( threadFactory, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
     }
 
     private NioSingleEventLoopGroup(
-            int nThreads, Executor executor, final SelectorProvider selectorProvider) {
-        this(nThreads, executor, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
+             Executor executor, final SelectorProvider selectorProvider) {
+        this( executor, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
     }
 
-    private NioSingleEventLoopGroup(int nThreads, Executor executor, final SelectorProvider selectorProvider,
+    private NioSingleEventLoopGroup(Executor executor, final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory) {
-        super(nThreads, executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
+        super( executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
     }
 
-    private NioSingleEventLoopGroup(int nThreads, Executor executor, EventExecutorChooserFactory chooserFactory,
+    private NioSingleEventLoopGroup( Executor executor, EventExecutorChooserFactory chooserFactory,
                              final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory) {
-        super(nThreads, executor, chooserFactory, selectorProvider, selectStrategyFactory,
+        super( executor, chooserFactory, selectorProvider, selectStrategyFactory,
                 RejectedExecutionHandlers.reject());
     }
 
-    private NioSingleEventLoopGroup(int nThreads, Executor executor, EventExecutorChooserFactory chooserFactory,
+    private NioSingleEventLoopGroup( Executor executor, EventExecutorChooserFactory chooserFactory,
                              final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory,
                              final RejectedExecutionHandler rejectedExecutionHandler) {
-        super(nThreads, executor, chooserFactory, selectorProvider, selectStrategyFactory, rejectedExecutionHandler);
+        super( executor, chooserFactory, selectorProvider, selectStrategyFactory, rejectedExecutionHandler);
     }
 
-    private NioSingleEventLoopGroup(int nThreads, Executor executor, EventExecutorChooserFactory chooserFactory,
+    private NioSingleEventLoopGroup(Executor executor, EventExecutorChooserFactory chooserFactory,
                              final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory,
                              final RejectedExecutionHandler rejectedExecutionHandler,
                              final EventLoopTaskQueueFactory taskQueueFactory) {
-        super(nThreads, executor, chooserFactory, selectorProvider, selectStrategyFactory,
+        super(executor, chooserFactory, selectorProvider, selectStrategyFactory,
                 rejectedExecutionHandler, taskQueueFactory);
     }
 
@@ -116,7 +107,7 @@ public class NioSingleEventLoopGroup extends SingleThreadEventLoopGroup {
                              RejectedExecutionHandler rejectedExecutionHandler,
                              EventLoopTaskQueueFactory taskQueueFactory,
                              EventLoopTaskQueueFactory tailTaskQueueFactory) {
-        super(nThreads, executor, chooserFactory, selectorProvider, selectStrategyFactory,
+        super(executor, chooserFactory, selectorProvider, selectStrategyFactory,
                 rejectedExecutionHandler, taskQueueFactory, tailTaskQueueFactory);
     }
 

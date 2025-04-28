@@ -8,45 +8,45 @@ import io.netty.util.internal.SystemPropertyUtil;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import com.wiqer.redis.netty.util.concurrent.SingleThreadEventExecutorGroup;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
-
+@Slf4j
 public abstract class SingleThreadEventLoopGroup  extends SingleThreadEventExecutorGroup implements EventLoopGroup {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(SingleThreadEventLoopGroup.class);
 
     private static final int DEFAULT_EVENT_LOOP_THREADS;
 
     static {
-        DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
-                "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+        DEFAULT_EVENT_LOOP_THREADS = 1;
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("-Dio.netty.eventLoopThreads: {}", DEFAULT_EVENT_LOOP_THREADS);
+        if (log.isDebugEnabled()) {
+            log.debug("-Dio.netty.eventLoopThreads: {}", DEFAULT_EVENT_LOOP_THREADS);
         }
     }
 
     /**
-     * @see SingleThreadEventLoopGroup#SingleThreadEventLoopGroup(int, Executor, Object...)
+     * @see SingleThreadEventLoopGroup#SingleThreadEventLoopGroup(Executor, Object...)
      */
-    protected SingleThreadEventLoopGroup(int nThreads, Executor executor, Object... args) {
-        super(nThreads == 0 ? DEFAULT_EVENT_LOOP_THREADS : nThreads, executor, args);
+    protected SingleThreadEventLoopGroup(Executor executor, Object... args) {
+        super(DEFAULT_EVENT_LOOP_THREADS, executor, args);
     }
 
     /**
-     * @see SingleThreadEventLoopGroup#SingleThreadEventLoopGroup(int, ThreadFactory, Object...)
+     * @see SingleThreadEventLoopGroup#SingleThreadEventLoopGroup(ThreadFactory, Object...)
      */
-    protected SingleThreadEventLoopGroup(int nThreads, ThreadFactory threadFactory, Object... args) {
-        super(nThreads == 0 ? DEFAULT_EVENT_LOOP_THREADS : nThreads, threadFactory, args);
+    protected SingleThreadEventLoopGroup(ThreadFactory threadFactory, Object... args) {
+        super(DEFAULT_EVENT_LOOP_THREADS, threadFactory, args);
     }
 
     /**
-     * @see SingleThreadEventLoopGroup#SingleThreadEventLoopGroup(int, Executor,
+     * @see SingleThreadEventLoopGroup#SingleThreadEventLoopGroup( Executor,
      * EventExecutorChooserFactory, Object...)
      */
-    protected SingleThreadEventLoopGroup(int nThreads, Executor executor, EventExecutorChooserFactory chooserFactory,
+    protected SingleThreadEventLoopGroup( Executor executor, EventExecutorChooserFactory chooserFactory,
                                         Object... args) {
-        super(nThreads == 0 ? DEFAULT_EVENT_LOOP_THREADS : nThreads, executor, chooserFactory, args);
+        super(DEFAULT_EVENT_LOOP_THREADS, executor, chooserFactory, args);
     }
 
     @Override

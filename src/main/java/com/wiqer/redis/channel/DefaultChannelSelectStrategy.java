@@ -8,12 +8,12 @@ import io.netty.channel.kqueue.KQueue;
 
 public class DefaultChannelSelectStrategy implements ChannelSelectStrategy {
     @Override
-    public LocalChannelOption select(){
+    public LocalChannelOption select() {
 
-        if(KQueue.isAvailable()){
+        if (KQueue.isAvailable()) {
             return new KqueueChannelOption();
         }
-        if(Epoll.isAvailable()){
+        if (Epoll.isAvailable()) {
             return new EpollChannelOption();
         }
         return new NioSelectChannelOption();

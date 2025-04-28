@@ -19,8 +19,8 @@ public class KqueueChannelOption implements LocalChannelOption {
         this.boss = boss;
         this.selectors = selectors;
     }
-    public KqueueChannelOption()
-    {
+
+    public KqueueChannelOption() {
         this.boss = new KQueueEventLoopGroup(4, new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
@@ -39,6 +39,7 @@ public class KqueueChannelOption implements LocalChannelOption {
             }
         });
     }
+
     @Override
     public EventLoopGroup boss() {
         return this.boss;
@@ -46,7 +47,7 @@ public class KqueueChannelOption implements LocalChannelOption {
 
     @Override
     public EventLoopGroup selectors() {
-        return  this.selectors;
+        return this.selectors;
     }
 
     @Override

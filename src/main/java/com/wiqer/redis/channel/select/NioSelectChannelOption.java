@@ -18,8 +18,8 @@ public class NioSelectChannelOption implements LocalChannelOption {
         this.boss = boss;
         this.selectors = selectors;
     }
-    public NioSelectChannelOption()
-    {
+
+    public NioSelectChannelOption() {
         this.boss = new NioEventLoopGroup(4, new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
@@ -29,7 +29,7 @@ public class NioSelectChannelOption implements LocalChannelOption {
             }
         });
 
-        this.selectors = new NioEventLoopGroup( Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors())), new ThreadFactory() {
+        this.selectors = new NioEventLoopGroup(Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors())), new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
             @Override
@@ -38,14 +38,15 @@ public class NioSelectChannelOption implements LocalChannelOption {
             }
         });
     }
+
     @Override
     public EventLoopGroup boss() {
-        return  this.boss;
+        return this.boss;
     }
 
     @Override
     public EventLoopGroup selectors() {
-        return  this.selectors;
+        return this.selectors;
     }
 
     @Override

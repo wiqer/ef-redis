@@ -10,6 +10,7 @@ import io.netty.util.internal.ReflectionUtil;
 import io.netty.util.internal.SystemPropertyUtil;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -24,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Slf4j
 public class NioSingleEventLoop extends SingleThreadEventLoop {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioSingleEventLoop.class);
 
@@ -60,7 +62,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
                     }
                 });
             } catch (final SecurityException e) {
-                logger.debug("Unable to get/set System Property: " + key, e);
+                log.debug("Unable to get/set System Property: " + key, e);
             }
         }
 
@@ -71,9 +73,9 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
 
         SELECTOR_AUTO_REBUILD_THRESHOLD = selectorAutoRebuildThreshold;
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("-Dio.netty.noKeySetOptimization: {}", DISABLE_KEY_SET_OPTIMIZATION);
-            logger.debug("-Dio.netty.selectorAutoRebuildThreshold: {}", SELECTOR_AUTO_REBUILD_THRESHOLD);
+        if (log.isDebugEnabled()) {
+            log.debug("-Dio.netty.noKeySetOptimization: {}", DISABLE_KEY_SET_OPTIMIZATION);
+            log.debug("-Dio.netty.selectorAutoRebuildThreshold: {}", SELECTOR_AUTO_REBUILD_THRESHOLD);
         }
     }
 
@@ -168,7 +170,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
                 !((Class<?>) maybeSelectorImplClass).isAssignableFrom(unwrappedSelector.getClass())) {
             if (maybeSelectorImplClass instanceof Throwable) {
                 Throwable t = (Throwable) maybeSelectorImplClass;
-                logger.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, t);
+                log.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, t);
             }
             return new SelectorTuple(unwrappedSelector);
         }
@@ -223,11 +225,11 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
         if (maybeException instanceof Exception) {
             selectedKeys = null;
             Exception e = (Exception) maybeException;
-            logger.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, e);
+            log.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, e);
             return new SelectorTuple(unwrappedSelector);
         }
         selectedKeys = selectedKeySet;
-        logger.trace("instrumented a special java.util.Set into: {}", unwrappedSelector);
+        log.trace("instrumented a special java.util.Set into: {}", unwrappedSelector);
         return new SelectorTuple(unwrappedSelector,
                 new SingleSelectedSelectionKeySetSelector(unwrappedSelector, selectedKeySet));
     }
@@ -350,7 +352,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
         try {
             newSelectorTuple = openSelector();
         } catch (Exception e) {
-            logger.warn("Failed to create a new Selector.", e);
+            log.warn("Failed to create a new Selector.", e);
             return;
         }
 
@@ -372,7 +374,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
                 }
                 nChannels ++;
             } catch (Exception e) {
-                logger.warn("Failed to re-register a Channel to the new Selector.", e);
+                log.warn("Failed to re-register a Channel to the new Selector.", e);
                 if (a instanceof AbstractSingleNioChannel) {
                     AbstractSingleNioChannel ch = (AbstractSingleNioChannel) a;
                     ch.unsafe().close(ch.unsafe().voidPromise());
@@ -391,13 +393,13 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
             // time to close the old selector as everything else is registered to the new one
             oldSelector.close();
         } catch (Throwable t) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("Failed to close the old Selector.", t);
+            if (log.isWarnEnabled()) {
+                log.warn("Failed to close the old Selector.", t);
             }
         }
 
-        if (logger.isInfoEnabled()) {
-            logger.info("Migrated " + nChannels + " channel(s) to the new Selector.");
+        if (log.isInfoEnabled()) {
+            log.info("Migrated " + nChannels + " channel(s) to the new Selector.");
         }
     }
 
@@ -477,8 +479,8 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
                 }
 
                 if (ranTasks || strategy > 0) {
-                    if (selectCnt > MIN_PREMATURE_SELECTOR_RETURNS && logger.isDebugEnabled()) {
-                        logger.debug("Selector.select() returned prematurely {} times in a row for Selector {}.",
+                    if (selectCnt > MIN_PREMATURE_SELECTOR_RETURNS && log.isDebugEnabled()) {
+                        log.debug("Selector.select() returned prematurely {} times in a row for Selector {}.",
                                 selectCnt - 1, selector);
                     }
                     selectCnt = 0;
@@ -487,8 +489,8 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
                 }
             } catch (CancelledKeyException e) {
                 // Harmless exception - log anyway
-                if (logger.isDebugEnabled()) {
-                    logger.debug(CancelledKeyException.class.getSimpleName() + " raised by a Selector {} - JDK bug?",
+                if (log.isDebugEnabled()) {
+                    log.debug(CancelledKeyException.class.getSimpleName() + " raised by a Selector {} - JDK bug?",
                             selector, e);
                 }
             } catch (Error e) {
@@ -521,8 +523,8 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
             // also log it.
             //
             // See https://github.com/netty/netty/issues/2426
-            if (logger.isDebugEnabled()) {
-                logger.debug("Selector.select() returned prematurely because " +
+            if (log.isDebugEnabled()) {
+                log.debug("Selector.select() returned prematurely because " +
                         "Thread.currentThread().interrupt() was called. Use " +
                         "NioEventLoop.shutdownGracefully() to shutdown the NioEventLoop.");
             }
@@ -532,7 +534,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
                 selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
             // The selector returned prematurely many times in a row.
             // Rebuild the selector to work around the problem.
-            logger.warn("Selector.select() returned prematurely {} times in a row; rebuilding Selector {}.",
+            log.warn("Selector.select() returned prematurely {} times in a row; rebuilding Selector {}.",
                     selectCnt, selector);
             rebuildSelector();
             return true;
@@ -541,7 +543,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
     }
 
     private static void handleLoopException(Throwable t) {
-        logger.warn("Unexpected exception in the selector loop.", t);
+        log.warn("Unexpected exception in the selector loop.", t);
 
         // Prevent possible consecutive immediate failures that lead to
         // excessive CPU consumption.
@@ -565,7 +567,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
         try {
             selector.close();
         } catch (IOException e) {
-            logger.warn("Failed to close a selector.", e);
+            log.warn("Failed to close a selector.", e);
         }
     }
 
@@ -755,7 +757,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
         try {
             task.channelUnregistered(k.channel(), cause);
         } catch (Exception e) {
-            logger.warn("Unexpected exception while running NioTask.channelUnregistered()", e);
+            log.warn("Unexpected exception while running NioTask.channelUnregistered()", e);
         }
     }
 
@@ -800,7 +802,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
         try {
             selector.selectNow();
         } catch (Throwable t) {
-            logger.warn("Failed to update SelectionKeys.", t);
+            log.warn("Failed to update SelectionKeys.", t);
         }
     }
 }

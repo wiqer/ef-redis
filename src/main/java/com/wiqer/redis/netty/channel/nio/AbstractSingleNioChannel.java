@@ -10,13 +10,14 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.channels.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
+@Slf4j
 public abstract class AbstractSingleNioChannel extends AbstractChannel {
 
     private static final InternalLogger logger =
@@ -45,9 +46,9 @@ public abstract class AbstractSingleNioChannel extends AbstractChannel {
     /**
      * Create a new instance
      *
-     * @param parent            the parent {@link Channel} by which this instance was created. May be {@code null}
-     * @param ch                the underlying {@link SelectableChannel} on which it operates
-     * @param readInterestOp    the ops to set to receive data from the {@link SelectableChannel}
+     * @param parent         the parent {@link Channel} by which this instance was created. May be {@code null}
+     * @param ch             the underlying {@link SelectableChannel} on which it operates
+     * @param readInterestOp the ops to set to receive data from the {@link SelectableChannel}
      */
     protected AbstractSingleNioChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
         super(parent);
@@ -59,7 +60,7 @@ public abstract class AbstractSingleNioChannel extends AbstractChannel {
             try {
                 ch.close();
             } catch (IOException e2) {
-                logger.warn(
+                log.warn(
                         "Failed to close a partially initialized socket.", e2);
             }
 
@@ -349,7 +350,7 @@ public abstract class AbstractSingleNioChannel extends AbstractChannel {
     @Override
     protected void doRegister() throws Exception {
         boolean selected = false;
-        for (;;) {
+        for (; ; ) {
             try {
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;

@@ -8,8 +8,7 @@ import io.netty.channel.Channel;
 import java.util.List;
 import java.util.Set;
 
-public interface RedisCore
-{
+public interface RedisCore {
     Set<BytesWrapper> keys();
 
     void putClient(BytesWrapper connectionName, Channel channelContext);

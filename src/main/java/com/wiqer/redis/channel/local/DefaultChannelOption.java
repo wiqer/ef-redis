@@ -13,9 +13,8 @@ public class DefaultChannelOption implements LocalChannelOption {
     private final DefaultEventLoopGroup boss;
     private final DefaultEventLoopGroup selectors;
 
-    public DefaultChannelOption()
-    {
-        this.boss =  new DefaultEventLoopGroup(4, new ThreadFactory() {
+    public DefaultChannelOption() {
+        this.boss = new DefaultEventLoopGroup(4, new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
             @Override
@@ -32,6 +31,7 @@ public class DefaultChannelOption implements LocalChannelOption {
             }
         });
     }
+
     @Override
     public EventLoopGroup boss() {
         return this.boss;
@@ -39,7 +39,7 @@ public class DefaultChannelOption implements LocalChannelOption {
 
     @Override
     public EventLoopGroup selectors() {
-        return  this.selectors;
+        return this.selectors;
     }
 
     @Override

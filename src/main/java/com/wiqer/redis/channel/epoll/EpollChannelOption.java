@@ -18,8 +18,8 @@ public class EpollChannelOption implements LocalChannelOption {
         this.boss = boss;
         this.selectors = selectors;
     }
-    public EpollChannelOption()
-    {
+
+    public EpollChannelOption() {
         this.boss = new EpollEventLoopGroup(4, new ThreadFactory() {
             private AtomicInteger index = new AtomicInteger(0);
 
@@ -38,6 +38,7 @@ public class EpollChannelOption implements LocalChannelOption {
             }
         });
     }
+
     @Override
     public EventLoopGroup boss() {
         return this.boss;
@@ -45,7 +46,7 @@ public class EpollChannelOption implements LocalChannelOption {
 
     @Override
     public EventLoopGroup selectors() {
-        return  this.selectors;
+        return this.selectors;
     }
 
     @Override

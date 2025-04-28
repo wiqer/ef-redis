@@ -14,6 +14,7 @@ import io.netty.util.internal.UnstableApi;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import com.wiqer.redis.netty.channel.nio.AbstractSingleNioByteChannel;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import static io.netty.channel.internal.ChannelUtils.MAX_BYTES_PER_GATHERING_WRITE_ATTEMPTED_LOW_THRESHOLD;
-
+@Slf4j
 public class NioSingleSocketChannel extends AbstractSingleNioByteChannel implements io.netty.channel.socket.SocketChannel {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioSocketChannel.class);
     private static final SelectorProvider DEFAULT_SELECTOR_PROVIDER = SelectorProvider.provider();
@@ -227,7 +228,7 @@ public class NioSingleSocketChannel extends AbstractSingleNioByteChannel impleme
         Throwable shutdownInputCause = shutdownInputFuture.cause();
         if (shutdownOutputCause != null) {
             if (shutdownInputCause != null) {
-                logger.debug("Exception suppressed because a previous exception occurred.",
+                log.debug("Exception suppressed because a previous exception occurred.",
                         shutdownInputCause);
             }
             promise.setFailure(shutdownOutputCause);

@@ -8,36 +8,30 @@ import java.util.Set;
 /**
  * @author lilan
  */
-public class RedisSet implements RedisData
-{
+public class RedisSet implements RedisData {
     private long timeout = -1;
 
     private final Set<BytesWrapper> set = new HashSet<>();
 
     @Override
-    public long timeout()
-    {
+    public long timeout() {
         return timeout;
     }
 
     @Override
-    public void setTimeout(long timeout)
-    {
+    public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
 
-    public int sadd(List<BytesWrapper> members)
-    {
+    public int sadd(List<BytesWrapper> members) {
         return (int) members.stream().filter(set::add).count();
     }
 
-    public Collection<BytesWrapper> keys()
-    {
+    public Collection<BytesWrapper> keys() {
         return set;
     }
 
-    public int srem(List<BytesWrapper> members)
-    {
+    public int srem(List<BytesWrapper> members) {
         return (int) members.stream().filter(set::remove).count();
     }
 }

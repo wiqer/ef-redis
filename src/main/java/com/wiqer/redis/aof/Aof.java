@@ -13,6 +13,7 @@ import com.wiqer.redis.util.Format;
 import com.wiqer.redis.util.PropertiesUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,28 +34,28 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * @author lilan
  */
+@Slf4j
 public class Aof {
 
-    private static final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Aof.class);
 
-    private static final  String suffix=".aof";
+    private static final String suffix = ".aof";
 
     /**
      * 1,经过大量测试，使用过3年以上机械磁盘的最大性能为26
      * 2,存盘偏移量，控制单个持久化文件大小
      */
-    public static final int shiftBit =26;
+    public static final int shiftBit = 26;
 
-    private   Long aofPutIndex=0L;
+    private Long aofPutIndex = 0L;
 
-    private  String fileName= PropertiesUtil.getAofPath();
+    private String fileName = PropertiesUtil.getAofPath();
 
-    private RingBlockingQueue<Resp> runtimeRespQueue=new RingBlockingQueue<Resp>(8888,888888);
+    private RingBlockingQueue<Resp> runtimeRespQueue = new RingBlockingQueue<Resp>(8888, 888888);
 
-    ByteBuf bufferPolled= new PooledByteBufAllocator().buffer(8888, 2147483647);
+    ByteBuf bufferPolled = new PooledByteBufAllocator().buffer(8888, 2147483647);
     //private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
 
-    private ScheduledThreadPoolExecutor persistenceExecutor=new ScheduledThreadPoolExecutor(1,new ThreadFactory() {
+    private ScheduledThreadPoolExecutor persistenceExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "Aof_Single_Thread");
@@ -66,14 +67,13 @@ public class Aof {
     /**
      * 读写锁
      */
-    final ReadWriteLock reentrantLock  =new ReentrantReadWriteLock();
+    final ReadWriteLock reentrantLock = new ReentrantReadWriteLock();
 
 
-    public Aof(RedisCore redisCore){
+    public Aof(RedisCore redisCore) {
         this.redisCore = redisCore;
-        File file=new File(this.fileName+suffix);
-        if(!file .isDirectory())
-        {
+        File file = new File(this.fileName + suffix);
+        if (!file.isDirectory()) {
             File parentFile = file.getParentFile();
             if (null != parentFile && !parentFile.exists()) {
                 parentFile.mkdirs(); // 创建文件夹
@@ -82,134 +82,139 @@ public class Aof {
         }
         start();
     }
+
     public void put(Resp resp) {
         runtimeRespQueue.offer(resp);
     }
-    public void start(){
+
+    public void start() {
         /**
          * 谁先执行需要顺序异步执行
          */
         persistenceExecutor.execute(this::pickupDiskDataAllSegment);
         persistenceExecutor.scheduleAtFixedRate(this::downDiskAllSegment, 10, 1, TimeUnit.SECONDS);
     }
-    public void close(){
+
+    public void close() {
         try {
             persistenceExecutor.shutdown();
-        }catch (Exception exp) {
-            LOGGER.warn( "Exception!", exp);
+        } catch (Exception exp) {
+            log.warn("Exception!", exp);
         }
     }
+
     /**
      * 面向过程分段存储所有的数据
      */
-    public void downDiskAllSegment(){
-        if( reentrantLock.writeLock().tryLock()) {
+    public void downDiskAllSegment() {
+        if (reentrantLock.writeLock().tryLock()) {
             try {
-                long segmentId=-1;
-                long segmentGroupHead=-1;
+                long segmentId = -1;
+                long segmentGroupHead = -1;
                 /**
                  * 池化内存
                  */
 
-               Segment:
-                while (segmentId!=(aofPutIndex>>shiftBit)) {
+                Segment:
+                while (segmentId != (aofPutIndex >> shiftBit)) {
                     //要后28位
-                    segmentId=(aofPutIndex>>shiftBit);
-                    RandomAccessFile randomAccessFile = new RandomAccessFile(fileName+"_"+segmentId+suffix, "rw");
-                    FileChannel channel= randomAccessFile.getChannel();
-                    long len=channel.size();
-                    int putIndex= Format.uintNBit(aofPutIndex,shiftBit) ;
-                    long baseOffset=aofPutIndex-putIndex;
+                    segmentId = (aofPutIndex >> shiftBit);
+                    RandomAccessFile randomAccessFile = new RandomAccessFile(fileName + "_" + segmentId + suffix, "rw");
+                    FileChannel channel = randomAccessFile.getChannel();
+                    long len = channel.size();
+                    int putIndex = Format.uintNBit(aofPutIndex, shiftBit);
+                    long baseOffset = aofPutIndex - putIndex;
 
-                    if (len-putIndex < 1L <<(shiftBit-2)){
-                        len=  segmentId + 1 <<(shiftBit-2);
+                    if (len - putIndex < 1L << (shiftBit - 2)) {
+                        len = segmentId + 1 << (shiftBit - 2);
                     }
-                    MappedByteBuffer mappedByteBuffer =channel.map(FileChannel.MapMode.READ_WRITE, 0,len);
+                    MappedByteBuffer mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, len);
 
-                    do{
+                    do {
                         //todo 序列化存储
-                        Resp resp= runtimeRespQueue.peek();
-                        if(resp==null){
+                        Resp resp = runtimeRespQueue.peek();
+                        if (resp == null) {
                             //bufferPolled.release();
                             clean(mappedByteBuffer);
                             randomAccessFile.close();
-                            break  Segment;
+                            break Segment;
                         }
-                        Resp.write(resp,bufferPolled);
-                        int respLen=bufferPolled.readableBytes();
-                        if((mappedByteBuffer.capacity()<=respLen+putIndex)){
-                            len+= 1L <<(shiftBit-3);
-                            mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0,len);
-                            if(len>(1<<shiftBit)){
+                        Resp.write(resp, bufferPolled);
+                        int respLen = bufferPolled.readableBytes();
+                        if ((mappedByteBuffer.capacity() <= respLen + putIndex)) {
+                            len += 1L << (shiftBit - 3);
+                            mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, len);
+                            if (len > (1 << shiftBit)) {
                                 bufferPolled.release();
-                                aofPutIndex=baseOffset+1<<shiftBit;
-                                break ;
+                                aofPutIndex = baseOffset + 1 << shiftBit;
+                                break;
                             }
                         }
-                        while(respLen>0){
+                        while (respLen > 0) {
                             respLen--;
-                            mappedByteBuffer.put(putIndex++,bufferPolled.readByte());
+                            mappedByteBuffer.put(putIndex++, bufferPolled.readByte());
                         }
                         /**
                          * 完成消费
                          */
-                        aofPutIndex= baseOffset+putIndex;
+                        aofPutIndex = baseOffset + putIndex;
                         runtimeRespQueue.poll();
                         bufferPolled.clear();
-                        if(len-putIndex < (1L <<(shiftBit-3))){
-                            len+= 1L <<(shiftBit-3);
-                            if(len>(1<<shiftBit)){
+                        if (len - putIndex < (1L << (shiftBit - 3))) {
+                            len += 1L << (shiftBit - 3);
+                            if (len > (1 << shiftBit)) {
                                 bufferPolled.release();
                                 clean(mappedByteBuffer);
-                                aofPutIndex=baseOffset+1<<shiftBit;
-                                break ;
+                                aofPutIndex = baseOffset + 1 << shiftBit;
+                                break;
                             }
-                            mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0,len);
+                            mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, len);
                         }
-                    }while (true);
+                    } while (true);
 
                 }
 
             } catch (IOException e) {
                 System.err.println(e.getMessage());
-                LOGGER.error("aof IOException ",e);
-            }catch (Exception e) {
+                log.error("aof IOException ", e);
+            } catch (Exception e) {
                 System.err.println(e.getMessage());
-                LOGGER.error("aof Exception",e);
-            }
-            finally {
+                log.error("aof Exception", e);
+            } finally {
                 reentrantLock.writeLock().unlock();
             }
 
         }
     }
+
     /**
      * 分段拾起所有数据
+     *
      * @throws IOException
      */
-    public void  pickupDiskDataAllSegment()  {
-        if( reentrantLock.writeLock().tryLock()) {
+    public void pickupDiskDataAllSegment() {
+        if (reentrantLock.writeLock().tryLock()) {
             try {
-                long segmentId=-1;
+                long segmentId = -1;
                 Segment:
-                while (segmentId!=(aofPutIndex>>shiftBit)) {
+                while (segmentId != (aofPutIndex >> shiftBit)) {
                     //要后28位
-                    segmentId=(aofPutIndex>>shiftBit);
-                    RandomAccessFile randomAccessFile = new RandomAccessFile(fileName+"_"+segmentId+suffix, "r");
-                    FileChannel channel= randomAccessFile.getChannel();
-                    long len=channel.size();
-                    int putIndex= Format.uintNBit(aofPutIndex,shiftBit) ;
-                    long baseOffset=aofPutIndex-putIndex;
+                    segmentId = (aofPutIndex >> shiftBit);
+                    RandomAccessFile randomAccessFile = new RandomAccessFile(fileName + "_" + segmentId + suffix, "r");
+                    FileChannel channel = randomAccessFile.getChannel();
+                    long len = channel.size();
+                    int putIndex = Format.uintNBit(aofPutIndex, shiftBit);
+                    long baseOffset = aofPutIndex - putIndex;
 
-                    MappedByteBuffer mappedByteBuffer =channel.map(FileChannel.MapMode.READ_ONLY, 0,len);
-                    ByteBuf bufferPolled= new PooledByteBufAllocator().buffer((int) len);
+                    MappedByteBuffer mappedByteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, len);
+                    ByteBuf bufferPolled = new PooledByteBufAllocator().buffer((int) len);
                     bufferPolled.writeBytes(mappedByteBuffer);
 
-                    do{
-                        Resp  resp=null;
+                    do {
+                        Resp resp = null;
                         try {
-                            resp=Resp.decode(bufferPolled);
-                        }catch (Exception e) {
+                            resp = Resp.decode(bufferPolled);
+                        } catch (Exception e) {
 
                             clean(mappedByteBuffer);
                             randomAccessFile.close();
@@ -217,19 +222,19 @@ public class Aof {
                             break Segment;
                         }
                         Command command = CommandFactory.from((RespArray) resp);
-                        WriteCommand writeCommand=   (WriteCommand)command;
+                        WriteCommand writeCommand = (WriteCommand) command;
                         assert writeCommand != null;
                         writeCommand.handle(this.redisCore);
-                        putIndex=bufferPolled.readerIndex();
-                        aofPutIndex=putIndex+ baseOffset;
-                        if(putIndex>(1<<shiftBit)){
+                        putIndex = bufferPolled.readerIndex();
+                        aofPutIndex = putIndex + baseOffset;
+                        if (putIndex > (1 << shiftBit)) {
                             bufferPolled.release();
                             clean(mappedByteBuffer);
-                            aofPutIndex=baseOffset+1<<shiftBit;
-                            break ;
+                            aofPutIndex = baseOffset + 1 << shiftBit;
+                            break;
                         }
 
-                    }while (true);
+                    } while (true);
 
                 }
 
