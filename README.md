@@ -123,21 +123,21 @@ redis-benchmark 在代码根目录中
 
 凭什么Java版本redis性能可以超越C++redis 15%？
 
-1，最新版本营销性能的改动有哪些？
+##### 1，最新版本营销性能的改动有哪些？
     1.1 NioEventLoopGroup指定单线程的线程池，并设置RingBlockingQueue。
     1.2 ServerBootstrap指定了池化消息内存内存池
     1.3 修改了最大帧大小，netty最大支持int最大值的大小帧，256mb,小于c++ redis版本的500mb，c++支持最大值500mb是因为c++支持无符号int
         索性当前版本支持最大值的大小帧大小改为了50mb，设置太大jvm会频繁垃圾回收等操作，印象接口耗时稳定性
-    
-2，自定义scsp堵塞队列：
+
+##### 2，自定义scsp堵塞队列：
     RingBlockingQueue开发意图原本是aof日志专用的单线程写单线程读的堵塞队列。
     2.1 ，为什么自己开发，不用开源的？
         java并没有scsp专用的堵塞队列，因为JCtools有开源的scsp堵塞队列，并没有实现BlockingQueue接口，而且性能并不好。
         RingBlockingQueue用到了连续内存页技术，读写内存更快，内存预申请，是Java自带堵塞队列性能的10倍以上。
-3，差异
+##### 3，差异
     3.1 CPP Redis 5.0 版本用的是nio epool模型，EF-Redis 用的是 select 模型，在连接数100 这个量级，select优势更大一些
     3.2 CPP Redis 5.0 最大帧支持500mb，EF-Redis 支持 50mb
-4，这还没完
+##### 4，这还没完
     分支中有操作命令无gc的版本，gc分支合并master分支后，有望性能在提升2%左右
 
 
