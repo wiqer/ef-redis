@@ -11,23 +11,19 @@ import com.wiqer.redis.resp.RespInt;
 import com.wiqer.redis.resp.SimpleString;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Ping implements Command
-{
+public class Ping implements Command {
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.lrem;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         ctx.write(new SimpleString("PONG"));
         ctx.flush();
     }

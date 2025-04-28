@@ -17,66 +17,51 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public abstract class Push implements WriteCommand
-{
+public abstract class Push implements WriteCommand {
     BiConsumer<RedisList, List<BytesWrapper>> biConsumer;
-    private BytesWrapper       key;
+    private BytesWrapper key;
     private List<BytesWrapper> value;
 
-    public Push(BiConsumer<RedisList, List<BytesWrapper>> biConsumer)
-    {
+    public Push(BiConsumer<RedisList, List<BytesWrapper>> biConsumer) {
         this.biConsumer = biConsumer;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
         value = new ArrayList<>();
-        for (int i = 2; i < array.length; i++)
-        {
+        for (int i = 2; i < array.length; i++) {
             value.add(((BulkString) array[i]).getContent());
         }
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             RedisList redisList = new RedisList();
             biConsumer.accept(redisList, value);
             redisCore.put(key, redisList);
             ctx.writeAndFlush(new RespInt(redisList.size()));
-        }
-        else if (redisData != null && !(redisData instanceof RedisList))
-        {
+        } else if (redisData != null && !(redisData instanceof RedisList)) {
             ctx.writeAndFlush(new Errors("wrong type"));
-        }
-        else
-        {
+        } else {
             biConsumer.accept((RedisList) redisData, value);
             redisCore.put(key, redisData);
             ctx.writeAndFlush(new RespInt(((RedisList) redisData).size()));
         }
     }
+
     @Override
-    public void handle( RedisCore redisCore)
-    {
+    public void handle(RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             RedisList redisList = new RedisList();
             biConsumer.accept(redisList, value);
             redisCore.put(key, redisList);
 
-        }
-        else if (redisData != null && !(redisData instanceof RedisList))
-        {
-        }
-        else
-        {
+        } else if (redisData != null && !(redisData instanceof RedisList)) {
+        } else {
             biConsumer.accept((RedisList) redisData, value);
             redisCore.put(key, redisData);
         }

@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 public interface WriteCommand extends Command {
     /**
      * for aof
+     *
      * @param redisCore
      */
     void handle(RedisCore redisCore);

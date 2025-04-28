@@ -13,45 +13,36 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Hset implements WriteCommand
-{
+public class Hset implements WriteCommand {
     private BytesWrapper key;
     private BytesWrapper field;
     private BytesWrapper value;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.hset;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
         field = ((BulkString) array[2]).getContent();
         value = ((BulkString) array[3]).getContent();
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             RedisHash redisHash = new RedisHash();
-            int       put       = redisHash.put(field, value);
+            int put = redisHash.put(field, value);
             redisCore.put(key, redisHash);
             ctx.writeAndFlush(new RespInt(put));
-        }
-        else if (redisData instanceof RedisHash)
-        {
+        } else if (redisData instanceof RedisHash) {
             RedisHash redisHash = (RedisHash) redisData;
-            int       put       = redisHash.put(field, value);
+            int put = redisHash.put(field, value);
             ctx.writeAndFlush(new RespInt(put));
-        }
-        else
-        {
+        } else {
             throw new IllegalArgumentException("类型错误");
         }
     }
@@ -59,19 +50,14 @@ public class Hset implements WriteCommand
     @Override
     public void handle(RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             RedisHash redisHash = new RedisHash();
             redisHash.put(field, value);
             redisCore.put(key, redisHash);
-        }
-        else if (redisData instanceof RedisHash)
-        {
+        } else if (redisData instanceof RedisHash) {
             RedisHash redisHash = (RedisHash) redisData;
-             redisHash.put(field, value);
-        }
-        else
-        {
+            redisHash.put(field, value);
+        } else {
             throw new IllegalArgumentException("类型错误");
         }
     }

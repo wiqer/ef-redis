@@ -12,34 +12,27 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
-public class SetNx implements WriteCommand
-{
+public class SetNx implements WriteCommand {
     private BytesWrapper key;
     private BytesWrapper value;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.setnx;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
         value = ((BulkString) array[2]).getContent();
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         boolean exist = redisCore.exist(key);
-        if (exist)
-        {
+        if (exist) {
             ctx.writeAndFlush(new RespInt(0));
-        }
-        else
-        {
+        } else {
             RedisString redisString = new RedisString();
             redisString.setValue(value);
             redisCore.put(key, redisString);
@@ -50,11 +43,8 @@ public class SetNx implements WriteCommand
     @Override
     public void handle(RedisCore redisCore) {
         boolean exist = redisCore.exist(key);
-        if (exist)
-        {
-        }
-        else
-        {
+        if (exist) {
+        } else {
             RedisString redisString = new RedisString();
             redisString.setValue(value);
             redisCore.put(key, redisString);

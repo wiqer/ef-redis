@@ -1,24 +1,21 @@
 package com.wiqer.redis.command.impl.set;
 
-
 import com.wiqer.redis.RedisCore;
-import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisData;
 import com.wiqer.redis.datatype.RedisSet;
-import com.wiqer.redis.resp.BulkString;
-import com.wiqer.redis.resp.Resp;
-import com.wiqer.redis.resp.RespInt;
+import com.wiqer.redis.resp.*;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Sadd implements WriteCommand {
-    List<BytesWrapper> member;
+public class Spop implements WriteCommand {
+    int member;
     private BytesWrapper key;
 
     @Override
@@ -29,21 +26,18 @@ public class Sadd implements WriteCommand {
     @Override
     public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
-        member = Stream.of(array).skip(2).map(resp -> ((BulkString) resp).getContent()).collect(Collectors.toList());
+        member = Integer.parseInt(((BulkString) array[2]).getContent().toUtf8String());
     }
 
     @Override
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
         if (redisData == null) {
-            RedisSet redisSet = new RedisSet();
-            int sadd = redisSet.sadd(member);
-            redisCore.put(key, redisSet);
-            ctx.writeAndFlush(new RespInt(sadd));
+            ctx.writeAndFlush(new Errors("1"));
         } else if (redisData instanceof RedisSet) {
             RedisSet redisSet = (RedisSet) redisData;
-            int sadd = redisSet.sadd(member);
-            ctx.writeAndFlush(new RespInt(sadd));
+            Set<BytesWrapper> spop = redisSet.spop(member);
+            ctx.writeAndFlush(new RespArray(spop.stream().map(BulkString::new).toArray(Resp[]::new)));
         } else {
             throw new IllegalArgumentException("类型不匹配");
         }
@@ -53,12 +47,10 @@ public class Sadd implements WriteCommand {
     public void handle(RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
         if (redisData == null) {
-            RedisSet redisSet = new RedisSet();
-            redisSet.sadd(member);
-            redisCore.put(key, redisSet);
+
         } else if (redisData instanceof RedisSet) {
             RedisSet redisSet = (RedisSet) redisData;
-            redisSet.sadd(member);
+            redisSet.spop(member);
         } else {
             throw new IllegalArgumentException("类型不匹配");
         }

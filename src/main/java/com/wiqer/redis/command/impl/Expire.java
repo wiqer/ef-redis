@@ -12,35 +12,28 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespInt;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Expire implements WriteCommand
-{
+public class Expire implements WriteCommand {
     private BytesWrapper key;
-    private int          second;
+    private int second;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.expire;
     }
 
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
         second = Integer.parseInt(((BulkString) array[2]).getContent().toUtf8String());
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             ctx.writeAndFlush(new RespInt(0));
-        }
-        else
-        {
+        } else {
             redisData.setTimeout(System.currentTimeMillis() + (second * 1000));
             ctx.writeAndFlush(new RespInt(1));
         }
@@ -49,11 +42,8 @@ public class Expire implements WriteCommand
     @Override
     public void handle(RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
-        }
-        else
-        {
+        if (redisData == null) {
+        } else {
             redisData.setTimeout(System.currentTimeMillis() + (second * 1000));
         }
     }

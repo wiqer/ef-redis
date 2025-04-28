@@ -1,9 +1,7 @@
 package com.wiqer.redis.datatype;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lilan
@@ -33,5 +31,25 @@ public class RedisSet implements RedisData {
 
     public int srem(List<BytesWrapper> members) {
         return (int) members.stream().filter(set::remove).count();
+    }
+
+    public Set<BytesWrapper> spop(int n) {
+        final int size = set.size();
+        n = Math.min(n, size);
+        Random random = new Random();
+        Set<BytesWrapper> deletedElements = new HashSet<>();
+        Set<BytesWrapper> resSet = new HashSet<>();
+        while (resSet.size() < size){
+            for (BytesWrapper val : set){
+                if(n >random.nextInt(n)){
+                    resSet.add(val);
+                }
+                if(resSet.size() >= size){
+                    break;
+                }
+            }
+        }
+        set.removeAll(resSet);
+        return deletedElements;
     }
 }

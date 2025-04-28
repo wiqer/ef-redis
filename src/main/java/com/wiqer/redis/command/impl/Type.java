@@ -10,52 +10,35 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.SimpleString;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Type implements Command
-{
+public class Type implements Command {
     private BytesWrapper key;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.type;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             ctx.writeAndFlush(new SimpleString("none"));
-        }
-        else if (redisData instanceof RedisString)
-        {
+        } else if (redisData instanceof RedisString) {
             ctx.writeAndFlush(new SimpleString("string"));
-        }
-        else if (redisData instanceof RedisList)
-        {
+        } else if (redisData instanceof RedisList) {
             ctx.writeAndFlush(new SimpleString("list"));
-        }
-        else if (redisData instanceof RedisSet)
-        {
+        } else if (redisData instanceof RedisSet) {
             ctx.writeAndFlush(new SimpleString("set"));
-        }
-        else if (redisData instanceof RedisHash)
-        {
+        } else if (redisData instanceof RedisHash) {
             ctx.writeAndFlush(new SimpleString("hash"));
-        }
-        else if (redisData instanceof RedisZset)
-        {
+        } else if (redisData instanceof RedisZset) {
             ctx.writeAndFlush(new SimpleString("zset"));
-        }
-        else
-        {
+        } else {
             throw new UnsupportedOperationException();
         }
     }

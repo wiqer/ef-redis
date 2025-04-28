@@ -17,37 +17,28 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Mget implements Command
-{
+public class Mget implements Command {
     private List<BytesWrapper> keys;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.mget;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         keys = Stream.of(array).skip(1).map(resp -> ((BulkString) resp).getContent()).collect(Collectors.toList());
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
-        LinkedList<BytesWrapper> linkedList= new LinkedList();
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
+        LinkedList<BytesWrapper> linkedList = new LinkedList();
         keys.forEach(key -> {
             RedisData redisData = redisCore.get(key);
-            if (redisData == null)
-            {
-            }
-            else if (redisData instanceof RedisString)
-            {
-                linkedList.add(((RedisString) redisData).getValue()) ;
-            }
-            else
-            {
+            if (redisData == null) {
+            } else if (redisData instanceof RedisString) {
+                linkedList.add(((RedisString) redisData).getValue());
+            } else {
                 throw new UnsupportedOperationException();
             }
         });

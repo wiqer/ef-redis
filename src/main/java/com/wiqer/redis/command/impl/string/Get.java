@@ -11,37 +11,28 @@ import com.wiqer.redis.resp.BulkString;
 import com.wiqer.redis.resp.Resp;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Get implements Command
-{
+public class Get implements Command {
     private BytesWrapper key;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.get;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
     }
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
         RedisData redisData = redisCore.get(key);
-        if (redisData == null)
-        {
+        if (redisData == null) {
             ctx.writeAndFlush(BulkString.NullBulkString);
-        }
-        else if (redisData instanceof RedisString)
-        {
+        } else if (redisData instanceof RedisString) {
             BytesWrapper value = ((RedisString) redisData).getValue();
             ctx.writeAndFlush(new BulkString(value));
-        }
-        else
-        {
+        } else {
             throw new UnsupportedOperationException();
         }
     }

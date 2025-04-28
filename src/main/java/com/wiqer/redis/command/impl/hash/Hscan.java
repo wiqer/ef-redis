@@ -14,27 +14,23 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Hscan extends AbstraceScan
-{
+public class Hscan extends AbstraceScan {
     private BytesWrapper key;
 
     @Override
-    public CommandType type()
-    {
+    public CommandType type() {
         return CommandType.hscan;
     }
 
     @Override
-    public void setContent(Resp[] array)
-    {
+    public void setContent(Resp[] array) {
         key = ((BulkString) array[1]).getContent();
     }
 
     @Override
-    protected RespArray get(RedisCore redisCore)
-    {
-        RedisHash                       redisHash = (RedisHash) redisCore.get(key);
-        Map<BytesWrapper, BytesWrapper> map       = redisHash.getMap();
+    protected RespArray get(RedisCore redisCore) {
+        RedisHash redisHash = (RedisHash) redisCore.get(key);
+        Map<BytesWrapper, BytesWrapper> map = redisHash.getMap();
         return new RespArray(map.entrySet().stream().flatMap(entry -> {
             Resp[] resps = new Resp[2];
             resps[0] = new BulkString(entry.getKey());

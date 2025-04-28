@@ -13,26 +13,28 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author lilan
  */
-public interface Command
-{
+public interface Command {
     Charset CHARSET = StandardCharsets.UTF_8;
 
 
     /**
      * 获取接口类型
+     *
      * @return 接口类型
      */
     CommandType type();
 
     /**
      * 注入属性
+     *
      * @param array 操作数组
      */
     void setContent(Resp[] array);
 
     /**
      * 处理消息命令
-     * @param ctx 管道
+     *
+     * @param ctx       管道
      * @param redisCore redis数据库
      */
     void handle(ChannelHandlerContext ctx, RedisCore redisCore);

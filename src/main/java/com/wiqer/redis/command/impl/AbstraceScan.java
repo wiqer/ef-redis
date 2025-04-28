@@ -9,13 +9,11 @@ import com.wiqer.redis.resp.Resp;
 import com.wiqer.redis.resp.RespArray;
 import io.netty.channel.ChannelHandlerContext;
 
-public abstract class AbstraceScan implements Command
-{
+public abstract class AbstraceScan implements Command {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
-    {
-        Resp[]     array       = new Resp[2];
+    public void handle(ChannelHandlerContext ctx, RedisCore redisCore) {
+        Resp[] array = new Resp[2];
         BulkString blukStrings = new BulkString(new BytesWrapper("0".getBytes(CHARSET)));
         array[0] = blukStrings;
         array[1] = get(redisCore);

@@ -6,9 +6,7 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandType;
 import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisList;
-import com.wiqer.redis.resp.BulkString;
-import com.wiqer.redis.resp.Resp;
-import com.wiqer.redis.resp.RespArray;
+import com.wiqer.redis.resp.*;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.List;
@@ -38,8 +36,13 @@ public class Lrange implements Command
     public void handle(ChannelHandlerContext ctx, RedisCore redisCore)
     {
         RedisList          redisList = (RedisList) redisCore.get(key);
-        List<BytesWrapper> lrang     = redisList.lrang(start, end);
-        RespArray          respArray = new RespArray(lrang.stream().map(BulkString::new).toArray(Resp[]::new));
-        ctx.writeAndFlush(respArray);
+        if(redisList == null){
+            ctx.writeAndFlush(new Errors("1"));
+        }else {
+            List<BytesWrapper> lrang     = redisList.lrang(start, end);
+            RespArray          respArray = new RespArray(lrang.stream().map(BulkString::new).toArray(Resp[]::new));
+            ctx.writeAndFlush(respArray);
+        }
+
     }
 }
