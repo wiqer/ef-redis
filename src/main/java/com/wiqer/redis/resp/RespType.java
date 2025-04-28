@@ -18,7 +18,7 @@ public enum RespType {
     R((byte) '\r'),
     N((byte) '\n'),
     ZERO((byte) '0'),
-    ONE((byte) '0'),;
+    ONE((byte) '1'),;
 
     private byte code;
 
