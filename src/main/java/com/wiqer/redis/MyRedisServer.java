@@ -104,6 +104,7 @@ public class MyRedisServer implements RedisServer {
                                 new CommandHandler(redisCore));
                     }
                 });
+        redisCore.startTllTask(PropertiesUtil.getHz(),PropertiesUtil.getMaxMemory());
 
         try {
             ChannelFuture sync = serverBootstrap.bind().sync();

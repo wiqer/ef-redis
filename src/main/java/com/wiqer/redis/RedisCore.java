@@ -22,4 +22,6 @@ public interface RedisCore {
     long remove(List<BytesWrapper> keys);
 
     void cleanAll();
+
+    void startTllTask(int hz,long maxMemory);
 }

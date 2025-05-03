@@ -6,6 +6,8 @@ import io.netty.util.internal.StringUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class PropertiesUtil {
@@ -61,7 +63,7 @@ public class PropertiesUtil {
     }
 
     public static Integer getNodePort() {
-        Integer port = 6379;
+        int port = 6379;
         try {
             String strPort = getProParams().getProperty("port");
             port = Integer.parseInt(strPort);
@@ -72,6 +74,55 @@ public class PropertiesUtil {
             return 6379;
         }
         return port;
+    }
+
+    public static Long getMaxMemory() {
+        try {
+            String strPort = getProParams().getProperty("maxmemory");
+            return parseMaxMemory(strPort);
+        } catch (Exception e) {
+            return (long) -1;
+        }
+    }
+
+    public static int getHz() {
+        int hz = 10;
+        try {
+            String strPort = getProParams().getProperty("hz");
+            hz = Integer.parseInt(strPort);
+        } catch (Exception e) {
+            return 6379;
+        }
+        if (hz <= 0 || hz > 60000) {
+            return 6379;
+        }
+        return hz;
+    }
+
+    public static Long parseMaxMemory(String valueStr) {
+        Pattern pattern = Pattern.compile("(\\d+)([a-zA-Z]*)");
+        Matcher matcher = pattern.matcher(valueStr);
+        if (matcher.matches()) {
+            long value = Long.parseLong(matcher.group(1));
+            String unit = matcher.group(2).toUpperCase();
+            switch (unit) {
+                case "":
+                case "B":
+                    return value;
+                case "K":
+                case "KB":
+                    return value * 1024;
+                case "M":
+                case "MB":
+                    return value * 1024 * 1024;
+                case "G":
+                case "GB":
+                    return value * 1024 * 1024 * 1024;
+                default:
+                    return -1L;
+            }
+        }
+        return -1L;
     }
 
     private Properties getProParams(String propertiesName) {
