@@ -5,12 +5,13 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class KqueueChannelOption implements LocalChannelOption {
+public class KqueueChannelOption implements LocalChannelOption<ServerSocketChannel> {
 
     private final KQueueEventLoopGroup boss;
     private final KQueueEventLoopGroup selectors;
@@ -51,7 +52,7 @@ public class KqueueChannelOption implements LocalChannelOption {
     }
 
     @Override
-    public Class getChannelClass() {
+    public Class<KQueueServerSocketChannel> getChannelClass() {
         return KQueueServerSocketChannel.class;
     }
 }

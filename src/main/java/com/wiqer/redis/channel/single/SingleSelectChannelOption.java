@@ -6,6 +6,7 @@ import com.wiqer.redis.netty.channel.nio.NioSingleEventLoopGroup;
 import com.wiqer.redis.netty.channel.socket.NioSingleServerSocketChannel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -16,7 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SingleSelectChannelOption implements LocalChannelOption {
+public class SingleSelectChannelOption implements LocalChannelOption<ServerSocketChannel> {
     private final NioSingleEventLoopGroup single;
 
     public SingleSelectChannelOption(NioSingleEventLoopGroup single) {
@@ -39,7 +40,7 @@ public class SingleSelectChannelOption implements LocalChannelOption {
     }
 
     @Override
-    public Class getChannelClass() {
+    public Class<NioSingleServerSocketChannel> getChannelClass() {
         return NioSingleServerSocketChannel.class;
     }
 }

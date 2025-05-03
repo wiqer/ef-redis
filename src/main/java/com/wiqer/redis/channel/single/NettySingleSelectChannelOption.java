@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class NettySingleSelectChannelOption implements LocalChannelOption {
+public class NettySingleSelectChannelOption implements LocalChannelOption<NioServerSocketChannel> {
     private final NioEventLoopGroup single;
 
     public NettySingleSelectChannelOption(NioEventLoopGroup single) {
@@ -35,7 +35,7 @@ public class NettySingleSelectChannelOption implements LocalChannelOption {
     }
 
     @Override
-    public Class getChannelClass() {
+    public Class<NioServerSocketChannel> getChannelClass() {
         return NioServerSocketChannel.class;
     }
 }

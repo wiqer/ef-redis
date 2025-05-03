@@ -3,6 +3,7 @@ package com.wiqer.redis.channel.select;
 import com.wiqer.redis.channel.LocalChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.NettyRuntime;
 import io.netty.util.internal.SystemPropertyUtil;
@@ -10,7 +11,7 @@ import io.netty.util.internal.SystemPropertyUtil;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class NioSelectChannelOption implements LocalChannelOption {
+public class NioSelectChannelOption implements LocalChannelOption<ServerSocketChannel> {
     private final NioEventLoopGroup boss;
     private final NioEventLoopGroup selectors;
 
@@ -50,7 +51,7 @@ public class NioSelectChannelOption implements LocalChannelOption {
     }
 
     @Override
-    public Class getChannelClass() {
+    public Class<NioServerSocketChannel> getChannelClass() {
         return NioServerSocketChannel.class;
     }
 }

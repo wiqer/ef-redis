@@ -8,7 +8,7 @@ import io.netty.channel.local.LocalServerChannel;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DefaultChannelOption implements LocalChannelOption {
+public class DefaultChannelOption implements LocalChannelOption<LocalServerChannel> {
 
     private final DefaultEventLoopGroup boss;
     private final DefaultEventLoopGroup selectors;
@@ -43,7 +43,7 @@ public class DefaultChannelOption implements LocalChannelOption {
     }
 
     @Override
-    public Class getChannelClass() {
+    public Class<LocalServerChannel> getChannelClass() {
         return LocalServerChannel.class;
     }
 }

@@ -5,11 +5,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class EpollChannelOption implements LocalChannelOption {
+public class EpollChannelOption implements LocalChannelOption<ServerSocketChannel> {
 
     private final EpollEventLoopGroup boss;
     private final EpollEventLoopGroup selectors;
@@ -50,7 +51,7 @@ public class EpollChannelOption implements LocalChannelOption {
     }
 
     @Override
-    public Class getChannelClass() {
+    public Class<EpollServerSocketChannel> getChannelClass() {
         return EpollServerSocketChannel.class;
     }
 }

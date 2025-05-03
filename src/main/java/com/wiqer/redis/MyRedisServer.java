@@ -17,6 +17,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -38,7 +39,7 @@ public class MyRedisServer implements RedisServer {
     private final RedisCore redisCore = new RedisCoreImpl();
     private final ServerBootstrap serverBootstrap = new ServerBootstrap();
     private final EventExecutorGroup redisSingleEventExecutor;
-    private final LocalChannelOption channelOption;
+    private final LocalChannelOption<ServerSocketChannel> channelOption;
     private Aof aof;
 
     public MyRedisServer() {
@@ -46,7 +47,7 @@ public class MyRedisServer implements RedisServer {
         this.redisSingleEventExecutor = new NioEventLoopGroup(1);
     }
 
-    public MyRedisServer(LocalChannelOption channelOption) {
+    public MyRedisServer(LocalChannelOption<ServerSocketChannel> channelOption) {
         this.channelOption = channelOption;
         this.redisSingleEventExecutor = new NioSingleEventLoopGroup(new ThreadPoolExecutor(1, 1, 1, TimeUnit.MINUTES, new RingBlockingQueue<>(8888, 888888), new DefaultThreadFactory("NioSingleEventLoopGroup_biz")));
     }
