@@ -8,16 +8,20 @@ ef-Redis是java 版本的redis server
 
 存储：仅支持AOF日志
 
+key自动清除：目前只支持自动超时清除，暂不支持key淘汰策略
+
 多路复用：支持 epoll，kqueue，select 默认优先级由高到低，同时支持本地和单路复用
 
 强烈推荐使用单路select线程模型
-#### 解决问题
 
-1,启动简单，方便测试
+#### 解决作者的问题
+作者开发这个软件的时，就职公司好未来正面临12k双减政策
 
-2,解除喜欢刨根问底的开发者，对大厂面试官面试redis相关问题的迷惑侧重点的迷惑
+1,启动简单，方便测试，可以嵌入式部署,无需申请redis云资源
 
-3,为redis proxy 开发提供技术参考
+2,基础架构部正在做redis proxy，开发提供技术参考
+
+3,解除对大厂面试官面试redis相关问题的迷惑侧重点的迷惑
 
 #### EF-Redis功能介绍
 
@@ -36,35 +40,16 @@ ef-Redis是java 版本的redis server
 ####  EF-Redis涉及技术
 
 1,Netty
+2,数据结构
+3,java io
 
 ####  EF-Redis开发框架
 
-Java+Netty
-
-####  EF-Redis入门知识
-1，Java基础
-
-b站搜索 “韩顺平java”
-
-2，Netty基础
-
-b站搜索 “韩顺平netty”
-
-3，redis tcp 协议
-
-
-[RESP协议中文文档](https://www.redis.com.cn/topics/protocol.html)
-
-[REDIS命令大全](https://www.redis.com.cn/commands.html)
-
-[ef-redis 源码解析](https://zhuanlan.zhihu.com/p/434698347)
-
+Java + Netty
 
 ####  EF-Redis启动步骤
 
 idea内部直接启动MyRedisServer
-
-jar运行方式 ，参见ef-zab
 
 ####  EF-Redis AOf持久化演示
 
@@ -78,7 +63,7 @@ redis-client 或者 redis-desktop-manager 都可以
 
 ####  秒吞吐量
 
-同样资源下 EF-Redis秒吞吐量是Redis的80%-95%
+同样资源下 Java版Redis的QPS比C++ Redis性能高 15.6%
 
 ####  延迟
 
@@ -142,6 +127,25 @@ redis-benchmark 在代码根目录中
     3.5 Java redis 没有实现 哨兵 和 主从复制，但不影响性能
 ##### 4，这还没完
     分支中有操作命令无gc的版本，gc分支合并master分支后，有望性能在提升2%左右
+
+
+####  EF-Redis入门知识
+1，Java基础
+
+b站搜索 “韩顺平java”
+
+2，Netty基础
+
+b站搜索 “韩顺平netty”
+
+3，redis tcp 协议
+
+
+[RESP协议中文文档](https://www.redis.com.cn/topics/protocol.html)
+
+[REDIS命令大全](https://www.redis.com.cn/commands.html)
+
+[ef-redis 源码解析](https://zhuanlan.zhihu.com/p/434698347)
 
 
 
