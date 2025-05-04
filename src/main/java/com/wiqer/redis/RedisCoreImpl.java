@@ -81,14 +81,20 @@ public class RedisCoreImpl implements RedisCore {
 
         // 执行定时任务
         executorService.scheduleAtFixedRate(() -> {
-            long startTime = System.currentTimeMillis();
-            ThreadLocalRandom random = ThreadLocalRandom.current();
 
+            final int size = map.size();
+            final ThreadLocalRandom random = ThreadLocalRandom.current();
+            long startTime;
+            long endTime;
+            long runtime = 0;
+            long times = 0;
+            //到达内存限度才开启自动检测ttl
             if(isJvmMemoryExceeded(maxMemory)){
 
-                while (interval + startTime > System.currentTimeMillis()){
+                //任务耗时过半或者扫描了几乎全部key就停止
+                while (runtime  < interval >>> 2 && times++ * selectKeySum < size){
+                    startTime = System.currentTimeMillis();
                     // 这里放置具体要执行的任务
-                    final int size = map.size();
                     selectKeySum = Math.min(selectKeySum, size);
                     for (Map.Entry<BytesWrapper, RedisData> entry : map.entrySet()){
                         if(selectKeySum == size || selectKeySum > random.nextInt(size)){
@@ -101,9 +107,10 @@ public class RedisCoreImpl implements RedisCore {
                            }
                         }
                     }
-                    long endTime = System.currentTimeMillis();
-                    if(interval + startTime > endTime){
-                        selectKeySum = (int) (selectKeySum * (float)interval/ (float)(interval + startTime - endTime));
+                    endTime = System.currentTimeMillis();
+                    runtime = endTime - startTime;
+                    if(runtime  < interval){
+                        selectKeySum = (int) (selectKeySum * (float)interval/ (float)(interval - runtime));
                     }else {
                         selectKeySum = (int) (selectKeySum * 0.75);
                     }
