@@ -44,6 +44,13 @@ public class RedisList implements RedisData {
         }
     }
 
+    public BytesWrapper lpop() {
+        return deque.removeFirst();
+    }
+    public BytesWrapper rpop() {
+        return deque.removeLast();
+    }
+
     public List<BytesWrapper> lrang(int start, int end) {
         return deque.stream().skip(start).limit(end - start >= 0 ? end - start + 1 : 0).collect(Collectors.toList());
     }

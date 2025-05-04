@@ -20,7 +20,7 @@ public class Spop implements WriteCommand {
 
     @Override
     public CommandType type() {
-        return CommandType.sadd;
+        return CommandType.spop;
     }
 
     @Override
