@@ -1,6 +1,7 @@
 package com.wiqer.redis.netty.util.concurrent;
 
 import io.netty.util.concurrent.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -17,7 +18,7 @@ public abstract class SingleThreadEventExecutorGroup extends AbstractEventExecut
     private final EventExecutor[] children;
     private final Set<EventExecutor> readonlyChildren;
     private final AtomicInteger terminatedChildren = new AtomicInteger();
-    private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventExecutor.INSTANCE);
+    private final Promise<?> terminationFuture = new DefaultPromise<>(GlobalEventExecutor.INSTANCE);
     private final EventExecutorChooserFactory.EventExecutorChooser chooser;
 
     /**
@@ -93,12 +94,9 @@ public abstract class SingleThreadEventExecutorGroup extends AbstractEventExecut
 
         chooser = chooserFactory.newChooser(children);
 
-        final FutureListener<Object> terminationListener = new FutureListener<Object>() {
-            @Override
-            public void operationComplete(Future<Object> future) throws Exception {
-                if (terminatedChildren.incrementAndGet() == children.length) {
-                    terminationFuture.setSuccess(null);
-                }
+        final FutureListener<Object> terminationListener = future -> {
+            if (terminatedChildren.incrementAndGet() == children.length) {
+                terminationFuture.setSuccess(null);
             }
         };
 
@@ -125,7 +123,7 @@ public abstract class SingleThreadEventExecutorGroup extends AbstractEventExecut
     }
 
     @Override
-    public Iterator<EventExecutor> iterator() {
+    public @NotNull Iterator<EventExecutor> iterator() {
         return readonlyChildren.iterator();
     }
 

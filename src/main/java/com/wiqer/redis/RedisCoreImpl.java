@@ -4,10 +4,7 @@ import com.wiqer.redis.datatype.BytesWrapper;
 import com.wiqer.redis.datatype.RedisData;
 import io.netty.channel.Channel;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -20,10 +17,11 @@ public class RedisCoreImpl implements RedisCore {
      * 客户端可能使用hash路由，更换为跳表更好的避免hash冲突
      * 这里用hash（o1）和跳表（ologn）性能区别不大，key不会太多，瓶颈主要在io和cpu
      */
-    private final Map<BytesWrapper, RedisData> map = new ConcurrentSkipListMap<>();
+    private final Map<BytesWrapper, RedisData> map = new ConcurrentHashMap<>();
 
 
     private final ConcurrentHashMap<BytesWrapper, Channel> clients = new ConcurrentHashMap<>();
+
     private final Map<Channel, BytesWrapper> clientNames = new ConcurrentHashMap<>();
 
     @Override
@@ -66,7 +64,7 @@ public class RedisCoreImpl implements RedisCore {
 
     @Override
     public long remove(List<BytesWrapper> keys) {
-        return keys.stream().peek(map::remove).count();
+        return keys.stream().map(map::remove).filter(Objects::nonNull).count();
     }
 
     @Override
@@ -80,7 +78,6 @@ public class RedisCoreImpl implements RedisCore {
         long interval = 1000 / hz;
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-
 
         // 执行定时任务
         executorService.scheduleAtFixedRate(() -> {

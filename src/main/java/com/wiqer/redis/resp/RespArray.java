@@ -1,5 +1,8 @@
 package com.wiqer.redis.resp;
 
+import lombok.Getter;
+
+@Getter
 public class RespArray implements Resp
 {
 
@@ -10,8 +13,4 @@ public class RespArray implements Resp
         this.array = array;
     }
 
-    public Resp[] getArray()
-    {
-        return array;
-    }
 }

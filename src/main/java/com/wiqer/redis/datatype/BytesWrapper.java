@@ -43,16 +43,15 @@ public class BytesWrapper implements Comparable<BytesWrapper> {
 
     @Override
     public int compareTo(BytesWrapper o) {
-        int len1 = content.length;
-        int len2 = o.getByteArray().length;
-        int lim = Math.min(len1, len2);
-        byte v1[] = content;
-        byte v2[] = o.getByteArray();
+        final int len1 = content.length;
+        final int len2 = o.getByteArray().length;
+        final int lim = Math.min(len1, len2);
+        byte[] v2 = o.getByteArray();
 
         int k = 0;
         while (k < lim) {
-            byte c1 = v1[k];
-            byte c2 = v2[k];
+            final byte c1 = content[k];
+            final byte c2 = v2[k];
             if (c1 != c2) {
                 return c1 - c2;
             }

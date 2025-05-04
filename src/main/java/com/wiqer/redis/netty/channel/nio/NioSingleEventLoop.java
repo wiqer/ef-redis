@@ -37,12 +37,7 @@ public class NioSingleEventLoop extends SingleThreadEventLoop {
     private static final int MIN_PREMATURE_SELECTOR_RETURNS = 3;
     private static final int SELECTOR_AUTO_REBUILD_THRESHOLD;
 
-    private final IntSupplier selectNowSupplier = new IntSupplier() {
-        @Override
-        public int get() throws Exception {
-            return selectNow();
-        }
-    };
+    private final IntSupplier selectNowSupplier = this::selectNow;
 
     // Workaround for JDK NIO bug.
     //

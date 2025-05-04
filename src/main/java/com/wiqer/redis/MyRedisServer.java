@@ -5,8 +5,6 @@ import com.wiqer.redis.aof.Aof;
 import com.wiqer.redis.aof.RingBlockingQueue;
 import com.wiqer.redis.channel.DefaultChannelSelectStrategy;
 import com.wiqer.redis.channel.LocalChannelOption;
-import com.wiqer.redis.channel.select.NioSelectChannelOption;
-import com.wiqer.redis.channel.single.NettySingleSelectChannelOption;
 import com.wiqer.redis.channel.single.SingleSelectChannelOption;
 import com.wiqer.redis.netty.channel.nio.NioSingleEventLoopGroup;
 import com.wiqer.redis.util.PropertiesUtil;
@@ -92,7 +90,7 @@ public class MyRedisServer implements RedisServer {
                 .localAddress(new InetSocketAddress(PropertiesUtil.getNodeAddress(), PropertiesUtil.getNodePort()))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                    protected void initChannel(SocketChannel socketChannel) {
                         ChannelPipeline channelPipeline = socketChannel.pipeline();
                         channelPipeline.addLast(
                                 new ResponseEncoder(),

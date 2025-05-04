@@ -3,11 +3,14 @@
  */
 package com.wiqer.redis.resp;
 
+import lombok.Getter;
+
 /**
  * 类型枚举类
  * @author liubing
  *
  */
+@Getter
 public enum RespType {
 
 	ERROR((byte) '-'),
@@ -26,7 +29,4 @@ public enum RespType {
       this.code = code;
     }
 
-    public byte getCode() {
-      return this.code;
-    }
 }

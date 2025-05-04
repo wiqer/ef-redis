@@ -1,5 +1,8 @@
 package com.wiqer.redis.resp;
 
+import lombok.Getter;
+
+@Getter
 public class RespInt implements Resp
 {
     int value;
@@ -9,8 +12,4 @@ public class RespInt implements Resp
         this.value = value;
     }
 
-    public int getValue()
-    {
-        return value;
-    }
 }

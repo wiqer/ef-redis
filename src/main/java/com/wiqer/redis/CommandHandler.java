@@ -23,15 +23,14 @@ public class CommandHandler extends SimpleChannelInboundHandler<Command> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Command command) throws Exception {
         String traceId = TRACEID.currentTraceId();
-        log.debug("traceId:" + traceId + " 本次处理的命令：" + command.type().name());
+        log.debug("traceId:{} 本次处理的命令：{}", traceId, command.type().name());
         try {
             command.handle(ctx, redisCore);
-
         } catch (Exception e) {
             log.error("处理数据时", e);
         }
 
-        log.debug("traceId:" + traceId + " 命令处理完毕");
+        log.debug("traceId:{} 命令处理完毕", traceId);
     }
 
     @Override

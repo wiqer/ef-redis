@@ -1,11 +1,16 @@
 package com.wiqer.redis.datatype;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author lilan
  */
 public class RedisString implements RedisData {
     private volatile long timeout;
 
+    @Setter
+    @Getter
     private BytesWrapper value;
 
     public RedisString(BytesWrapper value) {
@@ -15,14 +20,6 @@ public class RedisString implements RedisData {
 
     public RedisString() {
 
-    }
-
-    public BytesWrapper getValue() {
-        return value;
-    }
-
-    public void setValue(BytesWrapper value) {
-        this.value = value;
     }
 
     @Override

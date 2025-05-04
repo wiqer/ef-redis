@@ -1,12 +1,8 @@
 package com.wiqer.redis.netty.channel;
 
 import io.netty.channel.*;
-import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorChooserFactory;
-import io.netty.util.internal.SystemPropertyUtil;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.InternalLoggerFactory;
 import com.wiqer.redis.netty.util.concurrent.SingleThreadEventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +10,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 @Slf4j
 public abstract class SingleThreadEventLoopGroup  extends SingleThreadEventExecutorGroup implements EventLoopGroup {
-    private static final InternalLogger logger = InternalLoggerFactory.getInstance(SingleThreadEventLoopGroup.class);
 
     private static final int DEFAULT_EVENT_LOOP_THREADS;
 

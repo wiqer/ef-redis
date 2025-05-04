@@ -2,6 +2,7 @@ package com.wiqer.redis.datatype;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -10,14 +11,11 @@ import java.util.stream.Collectors;
  */
 public class RedisZset implements RedisData {
     private long timeout = -1;
-    private TreeMap<ZsetKey, Long> map = new TreeMap<>(new Comparator<ZsetKey>() {
-        @Override
-        public int compare(ZsetKey o1, ZsetKey o2) {
-            if (o1.key.equals(o2.key)) {
-                return 0;
-            }
-            return Long.compare(o1.score, o2.score);
+    final private TreeMap<ZsetKey, Long> map = new TreeMap<>((o1, o2) -> {
+        if (o1.key.equals(o2.key)) {
+            return 0;
         }
+        return Long.compare(o1.score, o2.score);
     });
 
     @Override
@@ -31,9 +29,7 @@ public class RedisZset implements RedisData {
     }
 
     public int add(List<ZsetKey> keys) {
-        return (int) keys.stream().peek(key -> {
-            map.put(key, key.getScore());
-        }).count();
+        return (int) keys.stream().map(key -> map.put(key, key.getScore())).filter(Objects::isNull).count();
     }
 
     public List<ZsetKey> range(int start, int end) {

@@ -1,10 +1,12 @@
 package com.wiqer.redis.resp;
 
 import com.wiqer.redis.datatype.BytesWrapper;
+import lombok.Getter;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+@Getter
 public class BulkString implements Resp
 {
     public static final BulkString NullBulkString = new BulkString(null);
@@ -16,8 +18,4 @@ public class BulkString implements Resp
         this.content = content;
     }
 
-    public BytesWrapper getContent()
-    {
-        return content;
-    }
 }

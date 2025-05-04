@@ -20,9 +20,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractSingleNioChannel extends AbstractChannel {
 
-    private static final InternalLogger logger =
-            InternalLoggerFactory.getInstance(AbstractSingleNioChannel.class);
-
     private final SelectableChannel ch;
     protected final int readInterestOp;
     //存储所有链接，一个链接对应一个key

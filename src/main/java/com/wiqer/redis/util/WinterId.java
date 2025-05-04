@@ -13,13 +13,13 @@ public class WinterId implements Uid {
         pid = (ManagementFactory.getRuntimeMXBean().getName().split("@")[0] + "_").toCharArray();
     }
 
-    private Sequencer sequencer;
+    final private Sequencer sequencer;
 
     private WinterId() {
         sequencer = new Sequencer();
     }
 
-    public static final WinterId instance() {
+    public static WinterId instance() {
         if (INSTANCE != null) {
             return INSTANCE;
         }
@@ -53,7 +53,7 @@ public class WinterId implements Uid {
         return generate();
     }
 
-    class Sequencer {
+    static class Sequencer {
         final StringBuilder cache = new StringBuilder();
         int sequence;
         long lastTime;

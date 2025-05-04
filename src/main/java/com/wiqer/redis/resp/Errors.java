@@ -1,5 +1,8 @@
 package com.wiqer.redis.resp;
 
+import lombok.Getter;
+
+@Getter
 public class Errors implements Resp
 {
     String content;
@@ -9,8 +12,4 @@ public class Errors implements Resp
         this.content = content;
     }
 
-    public String getContent()
-    {
-        return content;
-    }
 }

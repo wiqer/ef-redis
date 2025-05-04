@@ -7,7 +7,7 @@ class SingleFastThreadLocalRunnable implements Runnable {
     private final Runnable runnable;
 
     private SingleFastThreadLocalRunnable(Runnable runnable) {
-        this.runnable = (Runnable) ObjectUtil.checkNotNull(runnable, "runnable");
+        this.runnable = ObjectUtil.checkNotNull(runnable, "runnable");
     }
 
     @Override
@@ -21,6 +21,6 @@ class SingleFastThreadLocalRunnable implements Runnable {
     }
 
     static Runnable wrap(Runnable runnable) {
-        return (Runnable) (runnable instanceof SingleFastThreadLocalRunnable ? runnable : new SingleFastThreadLocalRunnable(runnable));
+        return runnable instanceof SingleFastThreadLocalRunnable ? runnable : new SingleFastThreadLocalRunnable(runnable);
     }
 }

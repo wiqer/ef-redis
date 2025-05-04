@@ -1,7 +1,6 @@
 package com.wiqer.redis.datatype;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author lilan

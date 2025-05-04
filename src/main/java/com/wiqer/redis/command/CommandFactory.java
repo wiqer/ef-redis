@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 
 @Slf4j
 public class CommandFactory {
-    static Map<String, Supplier<Command>> map = new HashMap<>();
+    static Map<String, Supplier<Command>> map = new HashMap<>(CommandType.values().length, 0.5F);
 
     static {
         for (CommandType each : CommandType.values()) {

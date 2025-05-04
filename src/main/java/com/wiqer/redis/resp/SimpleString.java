@@ -1,8 +1,11 @@
 package com.wiqer.redis.resp;
 
+import lombok.Getter;
+
 /**
  * @author lilan
  */
+@Getter
 public class SimpleString implements Resp
 {
     public static final SimpleString OK = new SimpleString("OK");
@@ -13,8 +16,4 @@ public class SimpleString implements Resp
         this.content = content;
     }
 
-    public String getContent()
-    {
-        return content;
-    }
 }

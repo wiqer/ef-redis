@@ -48,14 +48,14 @@ public class Aof {
 
     private Long aofPutIndex = 0L;
 
-    private String fileName = PropertiesUtil.getAofPath();
+    private final String fileName = PropertiesUtil.getAofPath();
 
-    private RingBlockingQueue<Resp> runtimeRespQueue = new RingBlockingQueue<Resp>(8888, 888888);
+    private final RingBlockingQueue<Resp> runtimeRespQueue = new RingBlockingQueue<Resp>(8888, 888888);
 
     ByteBuf bufferPolled = new PooledByteBufAllocator().buffer(8888, 2147483647);
     //private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
 
-    private ScheduledThreadPoolExecutor persistenceExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+    private final ScheduledThreadPoolExecutor persistenceExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "Aof_Single_Thread");

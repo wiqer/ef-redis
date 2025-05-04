@@ -26,7 +26,7 @@ public class NioSingleChannelOption<T> extends ChannelOption<T> {
      * Returns a {@link ChannelOption} for the given {@link SocketOption}.
      */
     public static <T> ChannelOption<T> of(SocketOption<T> option) {
-        return new NioSingleChannelOption<T>(option);
+        return new NioSingleChannelOption<>(option);
     }
 
     // It's important to not use java.nio.channels.NetworkChannel as otherwise the classes that sometimes call this
@@ -88,7 +88,7 @@ public class NioSingleChannelOption<T> extends ChannelOption<T> {
                     // See https://mail.openjdk.java.net/pipermail/nio-dev/2018-August/005365.html
                     continue;
                 }
-                extraOpts.add(new NioSingleChannelOption(opt));
+                extraOpts.add(new NioSingleChannelOption<>(opt));
             }
             return extraOpts.toArray(new ChannelOption[0]);
         } else {
@@ -96,7 +96,7 @@ public class NioSingleChannelOption<T> extends ChannelOption<T> {
 
             int i = 0;
             for (SocketOption<?> opt : supportedOpts) {
-                extraOpts[i++] = new NioSingleChannelOption(opt);
+                extraOpts[i++] = new NioSingleChannelOption<>(opt);
             }
             return extraOpts;
         }

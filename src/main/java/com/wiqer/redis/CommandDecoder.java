@@ -5,7 +5,6 @@ import com.wiqer.redis.command.Command;
 import com.wiqer.redis.command.CommandFactory;
 import com.wiqer.redis.command.WriteCommand;
 import com.wiqer.redis.resp.*;
-import com.wiqer.redis.util.PropertiesUtil;
 import com.wiqer.redis.util.TRACEID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,7 +37,7 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder {
     }
 
     @Override
-    public Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+    public Object decode(ChannelHandlerContext ctx, ByteBuf in) {
 
         TRACEID.newTraceId();
         while (in.readableBytes() != 0) {
@@ -53,10 +52,10 @@ public class CommandDecoder extends LengthFieldBasedFrameDecoder {
                     command = CommandFactory.from((RespArray) resp);
                 } else if (resp instanceof SimpleString) {
                     command = CommandFactory.from((SimpleString) resp);
-
                 }
                 if (command == null) {
                     //取出命令
+                    assert resp instanceof RespArray;
                     ctx.writeAndFlush(new Errors("unsupport command:" + ((BulkString) ((RespArray) resp).getArray()[0]).getContent().toUtf8String()));
                 } else {
                     if (aof != null && command instanceof WriteCommand) {

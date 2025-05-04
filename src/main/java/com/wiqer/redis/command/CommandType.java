@@ -12,9 +12,11 @@ import com.wiqer.redis.command.impl.string.*;
 import com.wiqer.redis.command.impl.zset.Zadd;
 import com.wiqer.redis.command.impl.zset.Zrem;
 import com.wiqer.redis.command.impl.zset.Zrevrange;
+import lombok.Getter;
 
 import java.util.function.Supplier;
 
+@Getter
 public enum CommandType {
     auth(Auth::new), config(Config::new), scan(Scan::new),//
     info(Info::new), client(Client::new), set(Set::new), type(Type::new),//
@@ -29,11 +31,8 @@ public enum CommandType {
 
     private final Supplier<Command> supplier;
 
-    CommandType(Supplier supplier) {
+    CommandType(Supplier<Command> supplier) {
         this.supplier = supplier;
     }
 
-    public Supplier<Command> getSupplier() {
-        return supplier;
-    }
 }

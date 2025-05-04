@@ -1,6 +1,8 @@
 package com.wiqer.redis.datatype;
 
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,7 @@ import java.util.Map;
  */
 public class RedisHash implements RedisData {
     private long timeout = -1;
+    @Getter
     private final Map<BytesWrapper, BytesWrapper> map = new HashMap<>();
 
     @Override
@@ -24,10 +27,6 @@ public class RedisHash implements RedisData {
 
     public int put(BytesWrapper field, BytesWrapper value) {
         return map.put(field, value) == null ? 1 : 0;
-    }
-
-    public Map<BytesWrapper, BytesWrapper> getMap() {
-        return map;
     }
 
     public int del(List<BytesWrapper> fields) {

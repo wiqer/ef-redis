@@ -27,7 +27,7 @@ public class NettyAffinityThreadFactory extends AffinityThreadFactory {
     }
 
     public NettyAffinityThreadFactory(Class<?> poolType) {
-        this((Class) poolType, false, 5);
+        this(poolType, false, 5);
     }
 
     public NettyAffinityThreadFactory(String poolName) {
@@ -35,7 +35,7 @@ public class NettyAffinityThreadFactory extends AffinityThreadFactory {
     }
 
     public NettyAffinityThreadFactory(Class<?> poolType, boolean daemon) {
-        this((Class) poolType, daemon, 5);
+        this(poolType, daemon, 5);
     }
 
     public NettyAffinityThreadFactory(String poolName, boolean daemon) {
