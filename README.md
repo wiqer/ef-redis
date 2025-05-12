@@ -29,7 +29,7 @@ key自动清除：目前只支持自动超时清除，暂不支持key淘汰策�
 
 #### EF-Redis架构简介
 
-[本Java 版Redis 源码分析]([https://zhuanlan.zhihu.com/p/368407754](https://deepwiki.com/wiqer/ef-redis/1.1-system-architecture)
+[本Java 版Redis 源码分析](https://deepwiki.com/wiqer/ef-redis/1.1-system-architecture)
 
 集群架构方式：客户端路由
 
