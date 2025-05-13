@@ -27,6 +27,7 @@ import java.security.PrivilegedAction;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -53,14 +54,8 @@ public class Aof {
     private final RingBlockingQueue<Resp> runtimeRespQueue = new RingBlockingQueue<Resp>(8888, 888888);
 
     ByteBuf bufferPolled = new PooledByteBufAllocator().buffer(8888, 2147483647);
-    //private RingBlockingQueue<Command> initTimeCommandQueue=new RingBlockingQueue<Command>(8888,888888);
 
-    private final ScheduledThreadPoolExecutor persistenceExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "Aof_Single_Thread");
-        }
-    });
+    private final ScheduledThreadPoolExecutor persistenceExecutor = new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "Aof_Single_Thread"));
 
     private final RedisCore redisCore;
 
@@ -246,35 +241,65 @@ public class Aof {
         }
     }
 
+    private static final AtomicBoolean warned = new AtomicBoolean(false);
 
-    /*
-     * 其实讲到这里该问题的解决办法已然清晰明了了——就是在删除索引文件的同时还取消对应的内存映射，删除mapped对象。
-     * 不过令人遗憾的是，Java并没有特别好的解决方案——令人有些惊讶的是，Java没有为MappedByteBuffer提供unmap的方法，
-     * 该方法甚至要等到Java 10才会被引入 ,DirectByteBufferR类是不是一个公有类
-     * class DirectByteBufferR extends DirectByteBuffer implements DirectBuffer 使用默认访问修饰符
-     * 不过Java倒是提供了内部的“临时”解决方案——DirectByteBufferR.cleaner().clean() 切记这只是临时方法，
-     * 毕竟该类在Java9中就正式被隐藏了，而且也不是所有JVM厂商都有这个类。
-     * 还有一个解决办法就是显式调用System.gc()，让gc赶在cache失效前就进行回收。
-     * 不过坦率地说，这个方法弊端更多：首先显式调用GC是强烈不被推荐使用的，
-     * 其次很多生产环境甚至禁用了显式GC调用，所以这个办法最终没有被当做这个bug的解决方案。
-     */
     public static void clean(final MappedByteBuffer buffer) throws Exception {
         if (buffer == null) {
             return;
         }
         buffer.force();
-        //Privileged特权
-        AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
-            try {
-                // System.out.println(buffer.getClass().getName());
-                Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
-                getCleanerMethod.setAccessible(true);
-                sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
-                cleaner.clean();
-            } catch (Exception e) {
-                e.printStackTrace();
+        // 尝试使用现代 API 或反射清理
+        if (!tryCleanWithModernApi(buffer) && !tryCleanWithReflection(buffer)) {
+            if (warned.compareAndSet(false, true)) {
+                log.warn(
+                        "无法清理 MappedByteBuffer，可能导致内存泄漏。请考虑升级到使用 MemorySegment API。");
             }
-            return null;
-        });
+        }
+    }
+
+    private static boolean tryCleanWithModernApi(MappedByteBuffer buffer) {
+        try {
+            // 尝试使用现代 API（如果可用）
+            Class<?> directBufferClass = Class.forName("java.nio.DirectBuffer");
+            if (directBufferClass.isInstance(buffer)) {
+                Method cleanerMethod = directBufferClass.getMethod("cleaner");
+                cleanerMethod.setAccessible(true);
+                Object cleaner = cleanerMethod.invoke(buffer);
+                if (cleaner != null) {
+                    Method cleanMethod = cleaner.getClass().getMethod("clean");
+                    cleanMethod.setAccessible(true);
+                    cleanMethod.invoke(cleaner);
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // 忽略，尝试下一种方法
+        }
+        return false;
+    }
+
+    private static boolean tryCleanWithReflection(MappedByteBuffer buffer) {
+        try {
+            // 备选方案：使用反射和 Unsafe
+            Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+            Method getUnsafeMethod = unsafeClass.getDeclaredMethod("getUnsafe");
+            getUnsafeMethod.setAccessible(true);
+            Object unsafe = getUnsafeMethod.invoke(null);
+
+            Method addressMethod = buffer.getClass().getMethod("address");
+            addressMethod.setAccessible(true);
+            long address = (long) addressMethod.invoke(buffer);
+
+            if (address != 0) {
+                Method freeMemoryMethod = unsafeClass.getMethod("freeMemory", long.class);
+                freeMemoryMethod.setAccessible(true);
+                freeMemoryMethod.invoke(unsafe, address);
+                return true;
+            }
+        } catch (Exception e) {
+            // 记录详细错误
+            log.debug( "清理 MappedByteBuffer 失败", e);
+        }
+        return false;
     }
 }
