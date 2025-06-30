@@ -31,18 +31,24 @@ public class Set implements WriteCommand {
         int index = 3;
         while (index < array.length) {
             String string = ((BulkString) array[index]).getContent().toUtf8String();
-            index++;
-            if (string.startsWith("EX")) {
-                String seconds = ((BulkString) array[index]).getContent().toUtf8String();
-                timeout = Integer.parseInt(seconds) * 1000;
-            } else if (string.startsWith("PX")) {
-                String seconds = ((BulkString) array[index]).getContent().toUtf8String();
-                timeout = Integer.parseInt(seconds);
+            if (string.equals("EX")) {
+                index++;
+                if (index < array.length) {
+                    String seconds = ((BulkString) array[index]).getContent().toUtf8String();
+                    timeout = Integer.parseInt(seconds) * 1000;
+                }
+            } else if (string.equals("PX")) {
+                index++;
+                if (index < array.length) {
+                    String seconds = ((BulkString) array[index]).getContent().toUtf8String();
+                    timeout = Integer.parseInt(seconds);
+                }
             } else if (string.equals("NX")) {
                 notExistSet = true;
             } else if (string.equals("XX")) {
                 existSet = true;
             }
+            index++;
         }
     }
 

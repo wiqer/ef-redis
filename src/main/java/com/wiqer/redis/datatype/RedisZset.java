@@ -28,6 +28,10 @@ public class RedisZset implements RedisData {
         this.timeout = timeout;
     }
 
+    public int size() {
+        return map.size();
+    }
+
     public int add(List<ZsetKey> keys) {
         return (int) keys.stream().map(key -> map.put(key, key.getScore())).filter(Objects::isNull).count();
     }

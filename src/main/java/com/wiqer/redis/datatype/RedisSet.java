@@ -28,6 +28,10 @@ public class RedisSet implements RedisData {
         return set;
     }
 
+    public int size() {
+        return set.size();
+    }
+
     public int srem(List<BytesWrapper> members) {
         return (int) members.stream().filter(set::remove).count();
     }

@@ -43,7 +43,7 @@ public abstract class Push implements WriteCommand {
             biConsumer.accept(redisList, value);
             redisCore.put(key, redisList);
             ctx.writeAndFlush(new RespInt(redisList.size()));
-        } else if (redisData != null && !(redisData instanceof RedisList)) {
+        } else if (!(redisData instanceof RedisList)) {
             ctx.writeAndFlush(new Errors("wrong type"));
         } else {
             biConsumer.accept((RedisList) redisData, value);

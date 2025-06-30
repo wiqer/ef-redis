@@ -29,6 +29,10 @@ public class RedisHash implements RedisData {
         return map.put(field, value) == null ? 1 : 0;
     }
 
+    public BytesWrapper get(BytesWrapper field) {
+        return map.get(field);
+    }
+
     public int del(List<BytesWrapper> fields) {
         return (int) fields.stream().filter(key -> map.remove(key) != null).count();
     }

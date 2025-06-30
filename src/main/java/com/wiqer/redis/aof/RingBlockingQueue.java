@@ -10,7 +10,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 线程不安全的BlockingQueue，尽量单线程使用，尽量使用 offer和poll两个底层方法
+ * 环形阻塞队列实现
+ * 支持单线程读单线程写并发场景
  *
  * @param <E> 泛型
  */
@@ -33,74 +34,30 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
      */
     static final int MAXIMUM_SUBAREA = Unsafe.getUnsafe().pageSize();
 
-    Object data[][];
+    // 数据存储数组
+    private final Object[][] data;
 
-    volatile int readIndex = -1;
+    // 读写索引，使用volatile保证可见性
+    private volatile long readIndex = -1;
+    private volatile long writeIndex = -1;
 
-    volatile int writeIndex = -1;
-
+    // 元素计数
     private final AtomicInteger count = new AtomicInteger();
 
-    /**
-     * Lock held by take, poll, etc
-     */
-    private final ReentrantLock takeLock = new ReentrantLock();
+    // 主锁，保护所有核心操作
+    private final ReentrantLock mainLock = new ReentrantLock();
 
-    /**
-     * Wait queue for waiting takes
-     */
-    private final Condition notEmpty = takeLock.newCondition();
+    // 等待队列
+    private final Condition notEmpty = mainLock.newCondition();
+    private final Condition notFull = mainLock.newCondition();
 
-    /**
-     * Lock held by put, offer, etc
-     */
-    private final ReentrantLock putLock = new ReentrantLock();
-
-    /**
-     * Wait queue for waiting puts
-     */
-    private final Condition notFull = putLock.newCondition();
-
-    /**
-     * Signals a waiting take. Called only from put/offer (which do not
-     * otherwise ordinarily lock takeLock.)
-     */
-    private void signalNotEmpty() {
-        final ReentrantLock takeLock = this.takeLock;
-        takeLock.lock();
-        try {
-            notEmpty.signal();
-        } finally {
-            takeLock.unlock();
-        }
-    }
-
-    /**
-     * Signals a waiting put. Called only from take/poll.
-     */
-    private void signalNotFull() {
-        final ReentrantLock putLock = this.putLock;
-        putLock.lock();
-        try {
-            notFull.signal();
-        } finally {
-            putLock.unlock();
-        }
-    }
-
-    int capacity;
-
-    int rowOffice;
-
-    int colOffice;
-
-    int rowSize;
-
-    int bitHigh;
-
-    int subareaSize;
-
-    int maxSize;
+    // 队列配置参数
+    private final int capacity;
+    private final int rowOffice;
+    private final int colOffice;
+    private final int rowSize;
+    private final int bitHigh;
+    private final int maxSize;
 
     /**
      * 初始化队列
@@ -117,26 +74,24 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
      *
      * @param subareaSize 分片数
      * @param capacity    容量
-     * @param concurrency 并发数
+     * @param concurrency 并发数（已废弃，保留兼容性）
      */
     public RingBlockingQueue(int subareaSize, int capacity, int concurrency) {
-
         if (subareaSize > capacity || capacity < 0 || subareaSize < 0) {
             throw new IllegalArgumentException("Illegal initial capacity:subareaSize>capacity||capacity<0||subareaSize<0");
         }
-        maxSize = capacity;
+        
+        this.maxSize = capacity;
         subareaSize = subareaSizeFor(subareaSize);
         capacity = tableSizeFor(capacity);
         rowSize = tableSizeFor(capacity / subareaSize);
         capacity = rowSize * subareaSize;
 
-        data = new Object[rowSize][subareaSize];
+        this.data = new Object[rowSize][subareaSize];
         this.capacity = capacity;
-        bitHigh = getIntHigh(subareaSize);
-        this.subareaSize = subareaSize;
-        rowOffice = rowSize - 1;
-        colOffice = subareaSize - 1;
-
+        this.bitHigh = getIntHigh(subareaSize);
+        this.rowOffice = rowSize - 1;
+        this.colOffice = subareaSize - 1;
     }
 
     /**
@@ -146,8 +101,7 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
      */
     public RingBlockingQueue(Collection<? extends E> c) {
         this(8888, 88888);
-        final ReentrantLock putLock = this.putLock;
-        putLock.lock(); // Never contended, but necessary for visibility
+        mainLock.lock();
         try {
             int n = 0;
             for (E e : c) {
@@ -157,17 +111,18 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
                 if (n == capacity) {
                     throw new IllegalStateException("Queue full");
                 }
-                put(e);
+                internalOffer(e);
                 ++n;
             }
             count.set(n);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         } finally {
-            putLock.unlock();
+            mainLock.unlock();
         }
     }
 
+    /**
+     * 计算2的幂次方容量
+     */
     static final int tableSizeFor(int cap) {
         int n = cap - 1;
         n |= n >>> 1;
@@ -178,6 +133,9 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
     }
 
+    /**
+     * 计算整数的最高位
+     */
     static final int getIntHigh(int cap) {
         int high = 0;
         while ((cap & 1) == 0) {
@@ -187,6 +145,9 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         return high;
     }
 
+    /**
+     * 计算分片大小的2的幂次方
+     */
     static final int subareaSizeFor(int cap) {
         int n = cap - 1;
         n |= n >>> 1;
@@ -197,94 +158,129 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         return (n < 0) ? 1 : (n >= MAXIMUM_SUBAREA) ? MAXIMUM_SUBAREA : n + 1;
     }
 
-    void refreshIndex() {
+    /**
+     * 刷新索引，防止索引溢出
+     */
+    private void refreshIndex() {
         if (readIndex > capacity) {
-            putLock.lock();
-            try {
-                synchronized (this) {
-                    if (readIndex > capacity) {
-                        writeIndex -= capacity;
-                        readIndex -= capacity;
-                    }
-                }
-            } finally {
-                putLock.unlock();
-            }
-
+            writeIndex -= capacity;
+            readIndex -= capacity;
         }
-
-
     }
 
-    @Override
-    public boolean offer(Object o) {
-        int localWriteIndex = 0;
-        synchronized (this) {
-            if (writeIndex > readIndex + maxSize) {
-                return false;
-            }
-            count.incrementAndGet();
-            localWriteIndex = ++writeIndex;
+    /**
+     * 内部offer方法，不包含锁操作
+     */
+    private boolean internalOffer(E o) {
+        if (writeIndex > readIndex + maxSize) {
+            return false;
         }
-        int row = (localWriteIndex >> bitHigh) & (rowOffice);
-        int column = localWriteIndex & (colOffice);
+        
+        long localWriteIndex = ++writeIndex;
+        int row = (int) ((localWriteIndex >> bitHigh) & rowOffice);
+        int column = (int) (localWriteIndex & colOffice);
+        
         if (column == 0 && row == 0) {
             refreshIndex();
         }
+        
         data[row][column] = o;
         return true;
     }
 
+    /**
+     * 内部poll方法，不包含锁操作
+     */
+    private E internalPoll() {
+        if (writeIndex <= readIndex) {
+            return null;
+        }
+        
+        long localReadIndex = ++readIndex;
+        int row = (int) ((localReadIndex >> bitHigh) & rowOffice);
+        int column = (int) (localReadIndex & colOffice);
+        
+        if (column == 0 && row == 0) {
+            refreshIndex();
+        }
+        
+        @SuppressWarnings("unchecked")
+        E result = (E) data[row][column];
+        data[row][column] = null; // 清除引用，帮助GC
+        return result;
+    }
+
+    /**
+     * 内部peek方法，不包含锁操作
+     */
+    private E internalPeek() {
+        if (writeIndex <= readIndex) {
+            return null;
+        }
+        
+        long localReadIndex = readIndex + 1;
+        int row = (int) ((localReadIndex >> bitHigh) & rowOffice);
+        int column = (int) (localReadIndex & colOffice);
+        
+        if (column == 0 && row == 0) {
+            refreshIndex();
+        }
+        
+        @SuppressWarnings("unchecked")
+        E result = (E) data[row][column];
+        return result;
+    }
+
+    @Override
+    public boolean offer(E o) {
+        if (o == null) {
+            throw new NullPointerException();
+        }
+        
+        mainLock.lock();
+        try {
+            if (count.get() >= capacity) {
+                return false;
+            }
+            
+            if (internalOffer(o)) {
+                count.incrementAndGet();
+                notEmpty.signal();
+                return true;
+            }
+            return false;
+        } finally {
+            mainLock.unlock();
+        }
+    }
 
     @Override
     public E poll() {
-        int localReadIndex = 0;
-        synchronized (this) {
-            if (writeIndex > readIndex) {
-                localReadIndex = ++readIndex;
-                count.getAndDecrement();
-            } else {
+        mainLock.lock();
+        try {
+            if (count.get() == 0) {
                 return null;
             }
+            
+            E result = internalPoll();
+            if (result != null) {
+                count.decrementAndGet();
+                notFull.signal();
+            }
+            return result;
+        } finally {
+            mainLock.unlock();
         }
-        int row = (localReadIndex >> bitHigh) & (rowOffice);
-        int column = localReadIndex & (colOffice);
-        if (column == 0 && row == 0) {
-            refreshIndex();
-        }
-        return (E) data[row][column];
     }
-
-    E ergodic(Integer index) {
-        int localReadIndex = 0;
-        if (index > writeIndex || index < readIndex) {
-            return null;
-        }
-        int row = (index >> bitHigh) & (rowOffice);
-        int column = index & (colOffice);
-        if (column == 0 && row == 0) {
-            refreshIndex();
-        }
-        return (E) data[row][column];
-    }
-
 
     @Override
     public E peek() {
-        int localReadIndex = 0;
-        synchronized (this) {
-            if (writeIndex > readIndex) {
-                localReadIndex = readIndex;
-            } else {
-                return null;
-            }
+        mainLock.lock();
+        try {
+            return internalPeek();
+        } finally {
+            mainLock.unlock();
         }
-        int row = (localReadIndex >> bitHigh) & (rowOffice);
-        int column = localReadIndex & (colOffice);
-        if (column == 0 && row == 0) {
-            refreshIndex();
-        }
-        return (E) data[row][column];
     }
 
     @Override
@@ -292,102 +288,67 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         if (o == null) {
             throw new NullPointerException();
         }
-        // Note: convention in all put/take/etc is to preset local var
-        // holding count negative to indicate failure unless set.
-        int c = -1;
-        final ReentrantLock putLock = this.putLock;
-        final AtomicInteger count = this.count;
-        putLock.lockInterruptibly();
+        
+        mainLock.lockInterruptibly();
         try {
-            /*
-             * Note that count is used in wait guard even though it is
-             * not protected by lock. This works because count can
-             * only decrease at this point (all other puts are shut
-             * out by lock), and we (or some other waiting put) are
-             * signalled if it ever changes from capacity. Similarly
-             * for all other uses of count in other wait guards.
-             */
-            while (count.get() == capacity) {
+            while (count.get() >= capacity) {
                 notFull.await();
             }
-            offer(o);
-            c = count.getAndIncrement();
-            if (c + 1 < capacity) {
-                notFull.signal();
-            }
+            
+            internalOffer(o);
+            count.incrementAndGet();
+            notEmpty.signal();
         } finally {
-            putLock.unlock();
-        }
-        if (c == 0) {
-            signalNotEmpty();
+            mainLock.unlock();
         }
     }
 
     @Override
-    public boolean offer(Object o, long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean offer(E o, long timeout, TimeUnit unit) throws InterruptedException {
         if (o == null) {
             throw new NullPointerException();
         }
+        
         long nanos = unit.toNanos(timeout);
-        int c = -1;
-        final ReentrantLock putLock = this.putLock;
-        final AtomicInteger count = this.count;
-        putLock.lockInterruptibly();
+        mainLock.lockInterruptibly();
         try {
-            while (count.get() == capacity) {
+            while (count.get() >= capacity) {
                 if (nanos <= 0) {
                     return false;
                 }
                 nanos = notFull.awaitNanos(nanos);
             }
-            offer(o);
-            c = count.getAndIncrement();
-            if (c + 1 < capacity) {
-                notFull.signal();
-            }
+            
+            internalOffer(o);
+            count.incrementAndGet();
+            notEmpty.signal();
+            return true;
         } finally {
-            putLock.unlock();
+            mainLock.unlock();
         }
-        if (c == 0) {
-            signalNotEmpty();
-        }
-        return true;
     }
 
     @Override
     public E take() throws InterruptedException {
-        E x;
-        int c = -1;
-        final AtomicInteger count = this.count;
-        final ReentrantLock takeLock = this.takeLock;
-        takeLock.lockInterruptibly();
+        mainLock.lockInterruptibly();
         try {
             while (count.get() == 0) {
                 notEmpty.await();
             }
-            x = poll();
-            c = count.getAndDecrement();
-            if (c > 1) {
-                notEmpty.signal();
-            }
+            
+            E result = internalPoll();
+            count.decrementAndGet();
+            notFull.signal();
+            return result;
         } finally {
-            takeLock.unlock();
+            mainLock.unlock();
         }
-        if (c == capacity) {
-            signalNotFull();
-        }
-        return x;
-
     }
 
     @Override
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-        E x = null;
-        int c = -1;
         long nanos = unit.toNanos(timeout);
-        final AtomicInteger count = this.count;
-        final ReentrantLock takeLock = this.takeLock;
-        takeLock.lockInterruptibly();
+        mainLock.lockInterruptibly();
         try {
             while (count.get() == 0) {
                 if (nanos <= 0) {
@@ -395,89 +356,74 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
                 }
                 nanos = notEmpty.awaitNanos(nanos);
             }
-            x = poll();
-            c = count.getAndDecrement();
-            if (c > 1) {
-                notEmpty.signal();
-            }
+            
+            E result = internalPoll();
+            count.decrementAndGet();
+            notFull.signal();
+            return result;
         } finally {
-            takeLock.unlock();
+            mainLock.unlock();
         }
-        if (c == capacity) {
-            signalNotFull();
-        }
-        return x;
     }
 
     @Override
     public int remainingCapacity() {
-        return capacity - count.get();
+        mainLock.lock();
+        try {
+            return capacity - count.get();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
-    /**
-     * 没有实现此方法
-     *
-     * @param o
-     * @return
-     */
     @Override
     public boolean remove(Object o) {
-        return false;
+        if (o == null) {
+            return false;
+        }
+        
+        mainLock.lock();
+        try {
+            // 简单实现：遍历查找并移除
+            for (int i = 0; i < count.get(); i++) {
+                long index = readIndex + 1 + i;
+                int row = (int) ((index >> bitHigh) & rowOffice);
+                int column = (int) (index & colOffice);
+                
+                if (o.equals(data[row][column])) {
+                    // 找到元素，移除它
+                    data[row][column] = null;
+                    count.decrementAndGet();
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            mainLock.unlock();
+        }
     }
 
-
-    /**
-     * 没有实现此方法
-     *
-     * @param o
-     * @return
-     */
     @Override
-    public boolean equals(Object o) {
-        return false;
-    }
-
-    /**
-     * 没有实现此方法
-     *
-     * @return
-     */
-    @Override
-    public int hashCode() {
-        return Arrays.deepHashCode(data);
-    }
-
-    /**
-     * 没有实现此方法
-     *
-     * @param c
-     * @return
-     */
-    @Override
-    public boolean retainAll(Collection c) {
-        return false;
-    }
-
-    /**
-     * 没有实现此方法
-     *
-     * @param c
-     * @return
-     */
-    @Override
-    public boolean removeAll(Collection c) {
-        return false;
-    }
-
-    /**
-     * 没有实现此方法
-     *
-     * @param c
-     * @return
-     */
-    @Override
-    public boolean containsAll(Collection c) {
-        return false;
+    public boolean contains(Object o) {
+        if (o == null) {
+            return false;
+        }
+        
+        mainLock.lock();
+        try {
+            for (int i = 0; i < count.get(); i++) {
+                long index = readIndex + 1 + i;
+                int row = (int) ((index >> bitHigh) & rowOffice);
+                int column = (int) (index & colOffice);
+                
+                if (o.equals(data[row][column])) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     @Override
@@ -491,93 +437,102 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
     }
 
     @Override
-    public boolean contains(Object o) {
-        if (o == null) {
-            return false;
-        }
-        fullyLock();
-        try {
-            for (int index = readIndex; readIndex >= index || index <= writeIndex; index++) {
-                if (o.equals(ergodic(index))) {
-                    return true;
-                }
-            }
-            return false;
-        } finally {
-            fullyUnlock();
-        }
-    }
-
-    /**
-     * 没有实现删除方法，没有实现迭代器
-     *
-     * @return
-     */
-    @Override
     public Iterator<E> iterator() {
-        return null;
-    }
-
-    void fullyLock() {
-        putLock.lock();
-        takeLock.lock();
+        return new RingBlockingQueueIterator();
     }
 
     /**
-     * Unlocks to allow both puts and takes.
+     * 迭代器实现
      */
-    void fullyUnlock() {
-        takeLock.unlock();
-        putLock.unlock();
+    private class RingBlockingQueueIterator implements Iterator<E> {
+        private int currentIndex = 0;
+        private final int size = count.get();
+        private final long startReadIndex = readIndex;
+
+        @Override
+        public boolean hasNext() {
+            return currentIndex < size;
+        }
+
+        @Override
+        public E next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            
+            mainLock.lock();
+            try {
+                long index = startReadIndex + 1 + currentIndex;
+                int row = (int) ((index >> bitHigh) & rowOffice);
+                int column = (int) (index & colOffice);
+                
+                @SuppressWarnings("unchecked")
+                E result = (E) data[row][column];
+                currentIndex++;
+                return result;
+            } finally {
+                mainLock.unlock();
+            }
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
     public Object[] toArray() {
-        fullyLock();
+        mainLock.lock();
         try {
             int size = count.get();
             Object[] a = new Object[size];
-            int k = 0;
-            for (int index = readIndex; readIndex >= index || index <= writeIndex; index++) {
-                a[k++] = ergodic(index);
+            for (int i = 0; i < size; i++) {
+                long index = readIndex + 1 + i;
+                int row = (int) ((index >> bitHigh) & rowOffice);
+                int column = (int) (index & colOffice);
+                a[i] = data[row][column];
             }
             return a;
         } finally {
-            fullyUnlock();
+            mainLock.unlock();
         }
     }
 
     @Override
-    public <E> E[] toArray(E[] a) {
-        fullyLock();
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] a) {
+        mainLock.lock();
         try {
             int size = count.get();
             if (a.length < size) {
-                a = (E[]) java.lang.reflect.Array.newInstance
-                        (a.getClass().getComponentType(), size);
+                a = (T[]) java.lang.reflect.Array.newInstance(
+                    a.getClass().getComponentType(), size);
             }
 
-            int k = 0;
-            for (int index = readIndex; readIndex >= index || index <= writeIndex; index++) {
-                a[k++] = (E) ergodic(index);
+            for (int i = 0; i < size; i++) {
+                long index = readIndex + 1 + i;
+                int row = (int) ((index >> bitHigh) & rowOffice);
+                int column = (int) (index & colOffice);
+                a[i] = (T) data[row][column];
             }
-            if (a.length > k) {
-                a[k] = null;
+            
+            if (a.length > size) {
+                a[size] = null;
             }
             return a;
         } finally {
-            fullyUnlock();
+            mainLock.unlock();
         }
     }
 
-
     @Override
-    public int drainTo(Collection c) {
+    public int drainTo(Collection<? super E> c) {
         return drainTo(c, Integer.MAX_VALUE);
     }
 
     @Override
-    public int drainTo(Collection c, int maxElements) {
+    public int drainTo(Collection<? super E> c, int maxElements) {
         if (c == null) {
             throw new NullPointerException();
         }
@@ -587,32 +542,21 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         if (maxElements <= 0) {
             return 0;
         }
-        boolean signalNotFull = false;
-        final ReentrantLock takeLock = this.takeLock;
-        takeLock.lock();
+        
+        mainLock.lock();
         try {
             int n = Math.min(maxElements, count.get());
-            // count.get provides visibility to first n Nodes
-            E e;
-            int i = 0;
-            try {
-                while ((e = remove()) != null) {
-
+            for (int i = 0; i < n; i++) {
+                E e = internalPoll();
+                if (e != null) {
                     c.add(e);
-
-                }
-                return n;
-            } finally {
-                // Restore invariants even if c.add() threw
-                if (i > 0) {
-                    signalNotFull = (count.getAndAdd(-i) == capacity);
                 }
             }
+            count.addAndGet(-n);
+            notFull.signal();
+            return n;
         } finally {
-            takeLock.unlock();
-            if (signalNotFull) {
-                signalNotFull();
-            }
+            mainLock.unlock();
         }
     }
 
@@ -625,17 +569,6 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         }
     }
 
-    /**
-     * Retrieves and removes the head of this queue.  This method differs
-     * from {@link #poll poll} only in that it throws an exception if this
-     * queue is empty.
-     *
-     * <p>This implementation returns the result of <tt>poll</tt>
-     * unless the queue is empty.
-     *
-     * @return the head of this queue
-     * @throws NoSuchElementException if this queue is empty
-     */
     @Override
     public E remove() {
         E x = poll();
@@ -646,17 +579,6 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         }
     }
 
-    /**
-     * Retrieves, but does not remove, the head of this queue.  This method
-     * differs from {@link #peek peek} only in that it throws an exception if
-     * this queue is empty.
-     *
-     * <p>This implementation returns the result of <tt>peek</tt>
-     * unless the queue is empty.
-     *
-     * @return the head of this queue
-     * @throws NoSuchElementException if this queue is empty
-     */
     @Override
     public E element() {
         E x = peek();
@@ -667,49 +589,20 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         }
     }
 
-    /**
-     * Removes all of the elements from this queue.
-     * The queue will be empty after this call returns.
-     *
-     * <p>This implementation repeatedly invokes {@link #poll poll} until it
-     * returns <tt>null</tt>.
-     */
     @Override
     public void clear() {
-        while (poll() != null) {
-            ;
+        mainLock.lock();
+        try {
+            while (count.get() > 0) {
+                internalPoll();
+                count.decrementAndGet();
+            }
+            notFull.signal();
+        } finally {
+            mainLock.unlock();
         }
     }
 
-    /**
-     * Adds all of the elements in the specified collection to this
-     * queue.  Attempts to addAll of a queue to itself result in
-     * <tt>IllegalArgumentException</tt>. Further, the behavior of
-     * this operation is undefined if the specified collection is
-     * modified while the operation is in progress.
-     *
-     * <p>This implementation iterates over the specified collection,
-     * and adds each element returned by the iterator to this
-     * queue, in turn.  A runtime exception encountered while
-     * trying to add an element (including, in particular, a
-     * <tt>null</tt> element) may result in only some of the elements
-     * having been successfully added when the associated exception is
-     * thrown.
-     *
-     * @param c collection containing elements to be added to this queue
-     * @return <tt>true</tt> if this queue changed as a result of the call
-     * @throws ClassCastException       if the class of an element of the specified
-     *                                  collection prevents it from being added to this queue
-     * @throws NullPointerException     if the specified collection contains a
-     *                                  null element and this queue does not permit null elements,
-     *                                  or if the specified collection is null
-     * @throws IllegalArgumentException if some property of an element of the
-     *                                  specified collection prevents it from being added to this
-     *                                  queue, or if the specified collection is this queue
-     * @throws IllegalStateException    if not all the elements can be added at
-     *                                  this time due to insertion restrictions
-     * @see #add(Object)
-     */
     @Override
     public boolean addAll(Collection<? extends E> c) {
         if (c == null) {
@@ -718,12 +611,54 @@ public class RingBlockingQueue<E> extends AbstractQueue<E> implements BlockingQu
         if (c == this) {
             throw new IllegalArgumentException();
         }
-        boolean modified = false;
-        for (E e : c) {
-            if (add(e)) {
-                modified = true;
+        
+        mainLock.lock();
+        try {
+            boolean modified = false;
+            for (E e : c) {
+                if (e == null) {
+                    throw new NullPointerException();
+                }
+                if (count.get() < capacity) {
+                    internalOffer(e);
+                    count.incrementAndGet();
+                    modified = true;
+                } else {
+                    throw new IllegalStateException("Queue full");
+                }
             }
+            if (modified) {
+                notEmpty.signal();
+            }
+            return modified;
+        } finally {
+            mainLock.unlock();
         }
-        return modified;
+    }
+
+    // 兼容性方法，返回false
+    @Override
+    public boolean equals(Object o) {
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(data);
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
     }
 }
